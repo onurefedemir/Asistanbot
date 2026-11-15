@@ -143,7 +143,10 @@ class Scraper(ABC):
 
     def is_blocked(self, html: str) -> bool:
         low = html.lower()
-        return any(s in low for s in ("captcha", "olağan dışı", "olagan disi", "cf-challenge", "are you a robot"))
+        return any(s in low for s in (
+            "captcha", "olağandışı", "olağan dışı", "olagan disi", "cf-challenge",
+            "just a moment", "enable javascript and cookies", "are you a robot",
+        ))
 
     def scrape(self, search: Search, fetcher, max_pages: int | None = None) -> list[Listing]:
         max_pages = max_pages or config.max_pages

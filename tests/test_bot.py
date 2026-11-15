@@ -177,3 +177,9 @@ def test_formatting_report(tmp_path):
     text = fmt.report(check_search(db, s, fetcher=object(), scrapers=[sc]))
     assert "Fiyatı düşenler" in text and "450.000" in text and "<s>500.000</s>" in text
     assert "En ucuzlar" in fmt.cheapest(s, db.active_listings(s.id))
+
+
+def test_block_pages_detected():
+    assert SahibindenScraper().is_blocked("<p>Olağandışı bir durum tespit ettik...</p>")
+    assert ArabamScraper().is_blocked("<title>Just a moment...</title>Enable JavaScript and cookies to continue")
+    assert not ArabamScraper().is_blocked((FX / "arabam.html").read_text())
