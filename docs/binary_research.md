@@ -212,3 +212,27 @@ Tüm turlar 15/30 dk vadeyle yeniden çalıştırıldı (Yahoo, 30 gün, 10 pari
 - %75 ödemede (Pocket medyanı) başa baş %57,14; keşif sonucu bile bu eşiğin altında.
 
 Aday `cross_ml_30m_p60` olarak 18 Kasım'da kaydedildi. Günde ~45 işlem ürettiği için 300 işleme ~7 iş gününde ulaşır; o zamana kadar durum **BEKLİYOR**.
+
+---
+
+# 7. TradingView "UT Bot Alerts" testi
+
+Kullanıcının kullandığı ayarlar: Key Value 1, ATR Period 10, Heikin Ashi kapalı, 1 dk grafik (AUDCHF). Gösterge `binary/utbot.py`'de Pine Script mantığıyla birebir yazıldı ve kullanıcının 18 Kasım 12:00–12:36 (UTC+2) AUDCHF ekran görüntüsündeki sinyaller (Buy ~12:13, Sell ~12:18, Buy ~12:23) 1–2 dk farkla yeniden üretildi (fark veri kaynağından).
+
+| Veri | Vade | Gecikmesiz giriş | 1 mum gecikmeli | Başa baş |
+|---|---|---|---|---|
+| Yahoo, 30 gün, 11 parite (%85 ödeme) | 1 dk | **%44,4** (68.699 işlem) | %49,8 | %54,05 |
+| | 5 dk | %45,4 | %49,7 | |
+| | 15 dk | %47,1 | %50,0 | |
+| | 30 dk | %48,2 | %49,7 | |
+| Pocket'ın kendi fiyatları, gerçek ödemeler | 1 dk | %47,9 (1.719) | %48,3 | ~%58,6 |
+| | 5 dk | %49,2 | %51,6 | |
+| | 15 dk | %54,0 (378) | %55,4 (352) | |
+
+Diğer popüler ayarlar (Key 2/ATR 1, Key 3/ATR 10, Key 2/ATR 300) ve gerçek high/low ile ATR: hepsi %42–48. **12 testin hiçbiri başa başa yaklaşmadı; kısa vadede yazı-turadan da kötü.**
+
+Neden? UT Bot bir trend takip göstergesi: sinyal, fiyat zaten bir yöne hareket ettikten sonra gelir. 1–5 dk ölçeğinde fiyat kısa hareketlerden sonra hafifçe geri dönme eğiliminde olduğu için giriş çoğu zaman yerel uçta yapılır.
+
+"Tersini yapmak" da çözüm değil: Yahoo'da gecikmesiz tersi %55,6 görünür ama bu, 1. turda görülen veri gürültüsüdür (1 mum gecikmeyle ~%50). Pocket'ta tersi %52,1 olur; gerçek ödemelerle başa baş %58,6.
+
+**"10'da 8" iddiası:** 68.699 işlemde %44,4. 10 işlemlik bir pencerede 8 doğru, bu sistemde de şans eseri sık sık görülür; uzun vadede sonuç zarar.
