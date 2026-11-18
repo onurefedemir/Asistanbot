@@ -290,3 +290,18 @@ Kullanıcının grafik çizimlerinden çıkarılan iki kural `binary/touches.py`
 | Mühürlü kural (karşılaştırma) | Aynı 27 grafikte 18/27; ama 12.735 rastgele anda %50,2 — küçük örneklemde şans |
 
 **Sonuç:** Henüz belirsiz. %59 başa başın üstünde, ama 27 işlemde yazı-turadan ayırt edilemiyor. Karar için ~200 işlem gerekiyor.
+
+---
+
+# 11. "Teyitli kırılım" — otomatik versiyon
+
+Kullanıcının testte 4/4 tutan "fiyat çizgiyi geçmiş ve ötesinde duruyor" okuması, sonuçlara bakılmadan `binary/breakout_confirm.py`'de sabitlendi: son 60 mumdan yatay (en az 2 dokunuşlu) veya trend (son iki pivot) çizgi; kapanış çizgiyi geçer ve sonraki 1–2 mum da ötesinde kapanırsa kırılım yönünde işlem.
+
+| Veri | 24 varyantın isabeti | Başa baş |
+|---|---|---|
+| Yahoo, 30 gün, 11 parite (5–21 bin işlem/varyant) | %47,4 – %50,7 | %54,05 |
+| Pocket'ın kendi fiyatları, gerçek ödemeler (118–559 işlem) | %37 – %54,5 | ~%58,5 |
+
+Hiçbiri Bonferroni eşiğini geçmedi. En iyi varyantla (trend, 2 mum teyit, 5 dk, gerçekçi giriş) 1.000 $ / 10 $ işlem simülasyonu: %50,7 isabetle hesap %85 ödemede 962 işlemde (~1,2 gün), %75 ödemede 614 işlemde (~0,8 gün) sıfırlandı.
+
+Not: Otomatik çizgiler kullanıcının çizdiği çizgilerle birebir aynı değil; kullanıcının gözle seçtiği "teyitli kırılım"lar (4/4) bu kuralın yakalayamadığı bir şey içeriyor olabilir. Bu ancak kullanıcının kendi işaretlediği daha fazla örnekle sınanabilir.
