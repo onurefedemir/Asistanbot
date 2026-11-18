@@ -61,3 +61,30 @@ finance/setup_agent.py  Ajanı oluşturur/günceller
 Sistem istemini (`finance/agent.py`) ya da araçları değiştirirseniz `python -m finance.setup_agent` komutunu tekrar çalıştırın. Mevcut sohbetler eski sürümde kalır, yeni sürüm için `/yeni` yazın.
 
 Testler (internet gerektirmez): `pip install pytest && python -m pytest tests`
+
+## İkili opsiyon araştırması (`binary/`)
+
+Pocket Option gibi platformlardaki OTC olmayan döviz çiftleri için **yalnızca araştırma ve demo**. İşlem açmaz.
+
+```bash
+python -m binary.data        # 10 çiftin son 30 günlük 1 dk verisini binary.db'ye ekler (her gün çalıştırın)
+python -m binary.research    # 1056 strateji/vade/seans kombinasyonunu eğitim+test döneminde sınar
+python -m binary.live        # canlı sinyal (sesli uyarı); DEMO hesapta elle işlem açın
+python -m binary.live --journal   # demo sonuçlarını girin
+python -m binary.live --stats     # demo kazanma oranı ve başa baş karşılaştırması
+python -m binary.paper            # canlı izleyip kendi karar veren SANAL işlem motoru (tıklama yapmaz)
+python -m binary.paper --max-trades 10   # 10 işlem kapanınca durur ve özet verir
+python -m binary.paper --report   # sanal işlem sonuçları ve seçicinin strateji durumları
+python -m binary.paper --ml       # ML stratejilerini de ekle (günde bir yeniden eğitilir)
+python -m binary.ml evaluate      # ML modelinin kayan pencereli testi (14 gün eğit → ertesi gün test)
+python -m binary.round2           # 2. tur: çiftler arası, mevsimsellik, kırılım vb. 7 yeni aile
+python -m binary.round3           # 3. tur: çiftler arası özellikli ML
+```
+
+İlk sonuçlar: [docs/binary_research.md](docs/binary_research.md). Özet: gerçekçi girişte başa baş oranını geçen strateji bulunamadı.
+
+**Otomatik veri toplama:** `.github/workflows/veri-topla.yml` her gün 06:17 TSİ'de GitHub'ın sunucularında çalışır (PC'nin açık olması gerekmez). Veriyi ve güncel araştırma raporlarını `data` dalına kaydeder; `main` dalına dokunmaz. En son sonuçlar: `data` dalındaki `research_delay1.txt`. Elle çalıştırmak için GitHub → Actions → "Veri topla" → Run workflow.
+
+**Claude'un günlük değerlendirmesi:** GitHub'da depo → Settings → Secrets and variables → Actions → New repository secret: ad `ANTHROPIC_API_KEY`, değer API anahtarınız. Eklendikten sonra günlük görev `data` dalına `review.md` yazar (günde bir kısa istek; anahtar yoksa adım atlanır). PC'de elle: `python -m binary.review --paper-db paper.db research_delay1.txt`.
+
+PC'de toplanmış veriyi kullanmak için: `git fetch origin data && git archive origin/data candles | tar -x && python -m binary.data --import-csv candles`

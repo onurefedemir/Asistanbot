@@ -1,0 +1,13 @@
+[
+  {
+    "id": "cross_ml_30m_p60",
+    "description": "Çiftler arası özellikli gradient boosting (round3.cross_features), 5 dk mumlar, 21 gün kayan pencereyle her gün yeniden eğitim; olasılık >= 0.60 ise CALL, <= 0.40 ise PUT; vade 30 dk (6 mum), giriş 1 mum (5 dk) gecikmeli.",
+    "registered_at": "2026-11-18",
+    "bar_sec": 300,
+    "expiry_bars": 6,
+    "threshold": 0.60,
+    "train_days": 21,
+    "evidence_at_registration": "Keşif (26 Ağu - 18 Kas, 5 dk Yahoo): 2.856 işlem, %56,86; 10 paritenin 9'u ve 9 haftanın 7'si başa başın (%54,05) üstünde; ikinci yarıda %54,7'ye zayıflama. Yaklaşık 1.300 denemenin ardından seçildi.",
+    "pass_rule": "Kayıt tarihinden SONRAKİ günlerde en az 300 işlem ve %85 ödemede p < 0.01"
+  }
+]

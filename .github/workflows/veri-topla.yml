@@ -1,0 +1,85 @@
+# Her gün OTC olmayan döviz çiftlerinin 1 dakikalık verisini toplar ve araştırmayı yeniden çalıştırır.
+# Veri ve raporlar `data` dalında birikir (main dalına dokunmaz):
+#   candles/YYYY-MM.csv.gz aylık 1 dk mumlar (her gün yalnızca içinde bulunulan ay değişir)
+#   research_delay1.txt    gerçekçi girişle (1 dk gecikme) strateji testi
+#   research_delay0.txt    gecikmesiz giriş (iyimser) strateji testi
+#   ml_report.txt          günlük yeniden eğitilen ML modelinin kayan pencereli testi
+#   forward_validation.txt ön kayıtlı adayların yalnızca kayıt sonrası veride testi (binary/candidates.json)
+#   review.md              Claude'un Türkçe günlük değerlendirmesi (ANTHROPIC_API_KEY secret'ı gerekir)
+# Elle çalıştırmak için: GitHub → Actions → "Veri topla" → Run workflow
+name: Veri topla
+
+on:
+  schedule:
+    - cron: "17 3 * * *"   # her gün 03:17 UTC (06:17 TSİ)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: veri-topla
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install pandas numpy requests scikit-learn joblib anthropic
+
+      - name: Önceki veriyi data dalından al
+        run: |
+          if git rev-parse --verify -q origin/data >/dev/null; then
+            git archive origin/data candles | tar -x
+            git show origin/data:review.md > review.md 2>/dev/null || rm -f review.md
+            ls -la candles
+          else
+            echo "data dalı yok, sıfırdan başlanıyor"
+          fi
+
+      - name: Yeni veriyi topla
+        run: python -m binary.data --import-csv candles --export-csv candles
+
+      - name: Araştırmayı çalıştır
+        run: |
+          python -m binary.research --delay 1 > research_delay1.txt
+          python -m binary.research --delay 0 > research_delay0.txt
+          python -m binary.ml evaluate > ml_report.txt
+          python -m binary.registry > forward_validation.txt
+          cat research_delay1.txt ml_report.txt forward_validation.txt
+
+      - name: Claude değerlendirmesi
+        # Depoda ANTHROPIC_API_KEY secret'ı yoksa bu adım hiçbir şey yapmadan geçer
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python -m binary.review --out review.md forward_validation.txt research_delay1.txt research_delay0.txt ml_report.txt
+
+      - name: data dalına kaydet
+        run: |
+          OUT="$RUNNER_TEMP/out"
+          mkdir -p "$OUT"
+          mv candles research_delay1.txt research_delay0.txt ml_report.txt forward_validation.txt "$OUT/"
+          if [ -f review.md ]; then mv review.md "$OUT/"; fi
+          rm -f binary.db
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          if git rev-parse --verify -q origin/data >/dev/null; then
+            git checkout -B data origin/data
+          else
+            git checkout --orphan data
+            git rm -rfq .
+          fi
+          cp -r "$OUT"/* .
+          git add -f candles research_delay1.txt research_delay0.txt ml_report.txt forward_validation.txt
+          if [ -f review.md ]; then git add -f review.md; fi
+          git commit -qm "Veri: $(date -u +%F)" || { echo "Değişiklik yok"; exit 0; }
+          git push origin data
