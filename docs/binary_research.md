@@ -236,3 +236,27 @@ Neden? UT Bot bir trend takip göstergesi: sinyal, fiyat zaten bir yöne hareket
 "Tersini yapmak" da çözüm değil: Yahoo'da gecikmesiz tersi %55,6 görünür ama bu, 1. turda görülen veri gürültüsüdür (1 mum gecikmeyle ~%50). Pocket'ta tersi %52,1 olur; gerçek ödemelerle başa baş %58,6.
 
 **"10'da 8" iddiası:** 68.699 işlemde %44,4. 10 işlemlik bir pencerede 8 doğru, bu sistemde de şans eseri sık sık görülür; uzun vadede sonuç zarar.
+
+---
+
+# 8. Kullanıcının TradingView favorileri
+
+Göstergeler açık kaynak mantıklarıyla, varsayılan ayarlarla `binary/tv_indicators.py`'de yeniden yazıldı (kaynak kodlarıyla satır satır karşılaştırılamadı; TradingView'e bu ortamdan erişim yok). JCFBaux Volatility yön üretmediği için diğerlerine yüksek/düşük oynaklık filtresi olarak eklendi.
+
+**Yahoo, 30 gün, 11 parite, %85 ödeme (başa baş %54,05) — isabet aralığı:**
+
+| Gösterge | Gecikmesiz (1/5/15/30 dk) | 1 mum gecikmeli |
+|---|---|---|
+| UT Bot (QuantNomad) | %44,4 – %48,3 | %49,7 – %50,1 |
+| Trendlines with Breaks (LuxAlgo) | %43,5 – %47,3 | %49,2 – %50,9 |
+| TRAMA (LuxAlgo) | %43,2 – %50,2 | %49,7 – %51,0 |
+| Gaussian N-Pole (Loxx) | %48,4 – %50,5 | %50,1 – %51,0 |
+| RSI Divergence (Libertus) | %49,0 – %50,5 | %48,7 – %50,8 |
+| RSI Gizli Divergence | %47,6 – %50,5 | %48,0 – %52,4 |
+| S/R Channels (LonesomeTheBlue) | %42,4 – %48,1 | %49,0 – %50,9 |
+
+Oynaklık filtresiyle en iyisi: RSI Divergence + yüksek oynaklık, 30 dk: %54,98 (1.597 işlem, p = 0,24).
+
+**Pocket'ın kendi fiyatları, gerçek ödemeler (başa baş ~%58,6):** hepsi %27–59, yüksek isabetliler çok az işlemli (örn. RSI Divergence 30 dk %58,6, 58 işlem).
+
+**Sonuç:** İki veri setinde 336 testin hiçbiri Bonferroni eşiğini geçmedi. Trend takip eden göstergeler (UT Bot, Trendlines, TRAMA, S/R kırılımı) 1–5 dk'da yazı-turadan belirgin şekilde kötü (%42–46): sinyal hareket bittikten sonra geliyor.
