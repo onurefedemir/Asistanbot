@@ -1,0 +1,70 @@
+# Her gün OTC olmayan döviz çiftlerinin 1 dakikalık verisini toplar ve araştırmayı yeniden çalıştırır.
+# Veri ve raporlar `data` dalında birikir (main dalına dokunmaz):
+#   binary.db              tüm 1 dk mumlar (SQLite)
+#   research_delay1.txt    gerçekçi girişle (1 dk gecikme) strateji testi
+#   research_delay0.txt    gecikmesiz giriş (iyimser) strateji testi
+# Elle çalıştırmak için: GitHub → Actions → "Veri topla" → Run workflow
+name: Veri topla
+
+on:
+  schedule:
+    - cron: "17 3 * * *"   # her gün 03:17 UTC (06:17 TSİ)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: veri-topla
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install pandas numpy requests
+
+      - name: Önceki veriyi data dalından al
+        run: |
+          if git rev-parse --verify -q origin/data >/dev/null; then
+            git show origin/data:binary.db > binary.db
+            echo "Önceki veri: $(du -h binary.db | cut -f1)"
+          else
+            echo "data dalı yok, sıfırdan başlanıyor"
+          fi
+
+      - name: Yeni veriyi topla
+        run: python -m binary.data
+
+      - name: Araştırmayı çalıştır
+        run: |
+          python -m binary.research --delay 1 > research_delay1.txt
+          python -m binary.research --delay 0 > research_delay0.txt
+          cat research_delay1.txt
+
+      - name: data dalına kaydet
+        run: |
+          OUT="$RUNNER_TEMP/out"
+          mkdir -p "$OUT"
+          mv binary.db research_delay1.txt research_delay0.txt "$OUT/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          if git rev-parse --verify -q origin/data >/dev/null; then
+            git checkout -B data origin/data
+          else
+            git checkout --orphan data
+            git rm -rfq .
+          fi
+          cp "$OUT"/* .
+          git add -f binary.db research_delay1.txt research_delay0.txt
+          git commit -qm "Veri: $(date -u +%F)" || { echo "Değişiklik yok"; exit 0; }
+          git push origin data

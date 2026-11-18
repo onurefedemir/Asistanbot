@@ -76,5 +76,6 @@ python -m binary.live --stats     # demo kazanma oranı ve başa baş karşıla�
 
 İlk sonuçlar: [docs/binary_research.md](docs/binary_research.md). Özet: gerçekçi girişte başa baş oranını geçen strateji bulunamadı.
 
-Windows'ta veriyi her gün otomatik toplamak için Görev Zamanlayıcı'da günlük bir görev oluşturun:
-program `python`, bağımsız değişken `-m binary.data`, başlangıç klasörü proje klasörü.
+**Otomatik veri toplama:** `.github/workflows/veri-topla.yml` her gün 06:17 TSİ'de GitHub'ın sunucularında çalışır (PC'nin açık olması gerekmez). Veriyi ve güncel araştırma raporlarını `data` dalına kaydeder; `main` dalına dokunmaz. En son sonuçlar: `data` dalındaki `research_delay1.txt`. Elle çalıştırmak için GitHub → Actions → "Veri topla" → Run workflow.
+
+PC'de toplanmış veriyi kullanmak için: `git fetch origin data && git show origin/data:binary.db > binary.db`
