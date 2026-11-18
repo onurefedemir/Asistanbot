@@ -260,3 +260,16 @@ Oynaklık filtresiyle en iyisi: RSI Divergence + yüksek oynaklık, 30 dk: %54,9
 **Pocket'ın kendi fiyatları, gerçek ödemeler (başa baş ~%58,6):** hepsi %27–59, yüksek isabetliler çok az işlemli (örn. RSI Divergence 30 dk %58,6, 58 işlem).
 
 **Sonuç:** İki veri setinde 336 testin hiçbiri Bonferroni eşiğini geçmedi. Trend takip eden göstergeler (UT Bot, Trendlines, TRAMA, S/R kırılımı) 1–5 dk'da yazı-turadan belirgin şekilde kötü (%42–46): sinyal hareket bittikten sonra geliyor.
+
+---
+
+# 9. Kullanıcının dokunuş sayısı okuması
+
+Kullanıcının grafik çizimlerinden çıkarılan iki kural `binary/touches.py`'de sonuca bakmadan sabitlendi: **R3** — destek/dirence 3. dokunuşta dönüş; **R5** — 5+ dokunuşta kırılım. Seviyeler son 60 mumun pivotlarından, dokunuş toleransı ortalama 1 dk hareketin yarısı.
+
+| Kural | Yahoo (30 gün, 11 parite) | Pocket (gerçek ödemeler) |
+|---|---|---|
+| R3 3. dokunuşta dönüş | %49,6 – %51,4 (5–15 bin işlem) | %48,7 – %56,4 (118–382 işlem; başa baş ~%58,5) |
+| R5 5+ dokunuşta kırılım | %45,6 – %51,5 (800–2.700 işlem) | 16–40 işlem, değerlendirilemez |
+
+12 + 12 testin hiçbiri Bonferroni eşiğini geçmedi. R5 1–5 dk'da yazı-turadan kötü (%45–48): çok test edilen seviye kısa vadede çoğu zaman tutuyor; ama tersi de (%52–54) gerçekçi ödemelerle başa başın altında.
