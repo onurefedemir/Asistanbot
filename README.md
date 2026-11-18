@@ -61,3 +61,20 @@ finance/setup_agent.py  Ajanı oluşturur/günceller
 Sistem istemini (`finance/agent.py`) ya da araçları değiştirirseniz `python -m finance.setup_agent` komutunu tekrar çalıştırın. Mevcut sohbetler eski sürümde kalır, yeni sürüm için `/yeni` yazın.
 
 Testler (internet gerektirmez): `pip install pytest && python -m pytest tests`
+
+## İkili opsiyon araştırması (`binary/`)
+
+Pocket Option gibi platformlardaki OTC olmayan döviz çiftleri için **yalnızca araştırma ve demo**. İşlem açmaz.
+
+```bash
+python -m binary.data        # 10 çiftin son 30 günlük 1 dk verisini binary.db'ye ekler (her gün çalıştırın)
+python -m binary.research    # 1056 strateji/vade/seans kombinasyonunu eğitim+test döneminde sınar
+python -m binary.live        # canlı sinyal (sesli uyarı); DEMO hesapta elle işlem açın
+python -m binary.live --journal   # demo sonuçlarını girin
+python -m binary.live --stats     # demo kazanma oranı ve başa baş karşılaştırması
+```
+
+İlk sonuçlar: [docs/binary_research.md](docs/binary_research.md). Özet: gerçekçi girişte başa baş oranını geçen strateji bulunamadı.
+
+Windows'ta veriyi her gün otomatik toplamak için Görev Zamanlayıcı'da günlük bir görev oluşturun:
+program `python`, bağımsız değişken `-m binary.data`, başlangıç klasörü proje klasörü.
