@@ -89,10 +89,55 @@ def load(pair: str, path: str = DB) -> pd.DataFrame:
     return df
 
 
+def export_csv(folder: str, path: str = DB) -> list[str]:
+    """Veriyi aylık sıkıştırılmış CSV'lere yazar (folder/YYYY-MM.csv.gz).
+    Git'te yalnızca içinde bulunulan ayın dosyası değişir; depo şişmez."""
+    import os
+
+    os.makedirs(folder, exist_ok=True)
+    db = _db(path)
+    df = pd.read_sql_query("SELECT * FROM candles ORDER BY ts, pair", db)
+    db.close()
+    months = pd.to_datetime(df["ts"], unit="s", utc=True).dt.strftime("%Y-%m")
+    written = []
+    for month, part in df.groupby(months):
+        f = os.path.join(folder, f"{month}.csv.gz")
+        # mtime=0: içerik aynıysa dosya baytları da aynı kalır (gereksiz commit olmaz)
+        part.to_csv(f, index=False, compression={"method": "gzip", "mtime": 0})
+        written.append(f)
+    return written
+
+
+def import_csv(folder: str, path: str = DB) -> int:
+    """export_csv ile yazılmış dosyaları veritabanına ekler."""
+    import glob
+
+    db = _db(path)
+    n = 0
+    for f in sorted(glob.glob(f"{folder}/*.csv.gz")):
+        df = pd.read_csv(f)
+        db.executemany(
+            "INSERT OR IGNORE INTO candles VALUES(?,?,?,?,?,?)",
+            df[["pair", "ts", "open", "high", "low", "close"]].itertuples(index=False, name=None),
+        )
+        n += len(df)
+    db.commit()
+    db.close()
+    return n
+
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="1 dakikalık döviz verisi topla")
     p.add_argument("--pairs", nargs="*", default=PAIRS)
     p.add_argument("--db", default=DB)
+    p.add_argument("--import-csv", metavar="KLASÖR", help="Önce bu klasördeki aylık CSV'leri içe aktar")
+    p.add_argument("--export-csv", metavar="KLASÖR", help="Sonra veriyi bu klasöre aylık CSV olarak yaz")
+    p.add_argument("--no-update", action="store_true", help="İnternetten veri indirme")
     a = p.parse_args()
-    for k, v in update(a.pairs, path=a.db).items():
+    if a.import_csv:
+        print(f"İçe aktarılan satır: {import_csv(a.import_csv, a.db)}")
+    added = {} if a.no_update else update(a.pairs, path=a.db)
+    if a.export_csv:
+        print(f"Yazılan dosyalar: {', '.join(export_csv(a.export_csv, a.db))}")
+    for k, v in added.items():
         print(f"{k}: +{v} mum")

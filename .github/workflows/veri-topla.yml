@@ -1,6 +1,6 @@
 # Her gün OTC olmayan döviz çiftlerinin 1 dakikalık verisini toplar ve araştırmayı yeniden çalıştırır.
 # Veri ve raporlar `data` dalında birikir (main dalına dokunmaz):
-#   binary.db              tüm 1 dk mumlar (SQLite)
+#   candles/YYYY-MM.csv.gz aylık 1 dk mumlar (her gün yalnızca içinde bulunulan ay değişir)
 #   research_delay1.txt    gerçekçi girişle (1 dk gecikme) strateji testi
 #   research_delay0.txt    gecikmesiz giriş (iyimser) strateji testi
 # Elle çalıştırmak için: GitHub → Actions → "Veri topla" → Run workflow
@@ -36,14 +36,14 @@ jobs:
       - name: Önceki veriyi data dalından al
         run: |
           if git rev-parse --verify -q origin/data >/dev/null; then
-            git show origin/data:binary.db > binary.db
-            echo "Önceki veri: $(du -h binary.db | cut -f1)"
+            git archive origin/data candles | tar -x
+            ls -la candles
           else
             echo "data dalı yok, sıfırdan başlanıyor"
           fi
 
       - name: Yeni veriyi topla
-        run: python -m binary.data
+        run: python -m binary.data --import-csv candles --export-csv candles
 
       - name: Araştırmayı çalıştır
         run: |
@@ -55,7 +55,8 @@ jobs:
         run: |
           OUT="$RUNNER_TEMP/out"
           mkdir -p "$OUT"
-          mv binary.db research_delay1.txt research_delay0.txt "$OUT/"
+          mv candles research_delay1.txt research_delay0.txt "$OUT/"
+          rm -f binary.db
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
           if git rev-parse --verify -q origin/data >/dev/null; then
@@ -64,7 +65,7 @@ jobs:
             git checkout --orphan data
             git rm -rfq .
           fi
-          cp "$OUT"/* .
-          git add -f binary.db research_delay1.txt research_delay0.txt
+          cp -r "$OUT"/* .
+          git add -f candles research_delay1.txt research_delay0.txt
           git commit -qm "Veri: $(date -u +%F)" || { echo "Değişiklik yok"; exit 0; }
           git push origin data
