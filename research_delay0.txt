@@ -1,0 +1,25 @@
+Veri: 281,814 dakika, 10 çift
+Eğitim: 2026-10-20 09:52 → 2026-11-10 03:32
+Test:   2026-11-10 03:32 → 2026-11-18 09:51
+Ödeme %85 → başa baş kazanma oranı %54.05
+Giriş gecikmesi: 0 mum, vadeler: 1, 2, 3, 5 dk
+Denenen kombinasyon: 1056
+
+strateji            parametre                    vade      seans |          eğitim |            test       p  geçti
+zscore_reversion    n=10,z=2.5                     2d        all | %63.61 n=904    | %66.42 n=399        0.0  EVET
+zscore_reversion    n=10,z=2.5                     3d        all | %63.37 n=890    | %64.47 n=394        0.0  EVET
+zscore_reversion    n=10,z=2.5                     5d        all | %63.37 n=890    | %62.94 n=394     0.0002  EVET
+zscore_reversion    n=10,z=2.5                     1d        all | %62.75 n=902    | % 67.1 n=386        0.0  EVET
+zscore_reversion    n=20,z=3.0                     5d        all | %60.54 n=745    | %59.03 n=310     0.0444  hayır
+roc_reversion       n=1,z=3.0                      1d        all | %59.82 n=1946   | % 59.2 n=870     0.0013  EVET
+rsi_reversion       n=5,lo=10,hi=90                2d ny_overlap | %59.39 n=522    | %61.14 n=175     0.0355  hayır
+zscore_reversion    n=20,z=3.0                     3d        all | % 59.3 n=774    | %60.49 n=324     0.0116  hayır
+roc_reversion       n=1,z=2.0                      1d        all | %59.03 n=9287   | %60.97 n=3984       0.0  EVET
+zscore_reversion    n=50,z=3.0                     1d       asya | %59.02 n=632    | %69.12 n=204        0.0  EVET
+zscore_reversion    n=50,z=3.0                     2d       asya | %58.97 n=468    | %71.34 n=164        0.0  EVET
+rsi_reversion       n=5,lo=10,hi=90                1d ny_overlap | %58.61 n=761    | %57.52 n=266     0.1418  hayır
+zscore_reversion    n=50,z=3.0                     5d        all | %58.58 n=1137   | %64.24 n=509        0.0  EVET
+roc_reversion       n=1,z=2.0                      1d       asya | %58.54 n=2752   | %63.48 n=1109       0.0  EVET
+zscore_reversion    n=20,z=3.0                     1d        all | %58.46 n=881    | %59.79 n=373      0.015  hayır
+
+Testi geçen strateji: 10 / 15 (eşik p < 0.0033)

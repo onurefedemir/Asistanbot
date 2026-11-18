@@ -1,0 +1,25 @@
+Veri: 281,814 dakika, 10 çift
+Eğitim: 2026-10-20 09:52 → 2026-11-10 03:32
+Test:   2026-11-10 03:32 → 2026-11-18 09:51
+Ödeme %85 → başa baş kazanma oranı %54.05
+Giriş gecikmesi: 1 mum, vadeler: 1, 2, 3, 5 dk
+Denenen kombinasyon: 1056
+
+strateji            parametre                    vade      seans |          eğitim |            test       p  geçti
+streak_momentum     m=6                            5d       asya | %55.99 n=459    | %50.29 n=173     0.8577  hayır
+zscore_reversion    n=20,z=2.5                     3d     londra | %54.86 n=638    | %55.32 n=282      0.357  hayır
+roc_momentum        n=1,z=3.0                      1d       asya | %54.69 n=426    | %43.23 n=192      0.999  hayır
+zscore_reversion    n=20,z=3.0                     1d        all | %54.62 n=758    | %50.79 n=315     0.8883  hayır
+roc_reversion       n=15,z=2.0                     5d ny_overlap | %54.48 n=547    | %47.62 n=252     0.9827  hayır
+rsi_reversion       n=5,lo=10,hi=90                2d     londra | %54.03 n=496    | %45.89 n=207     0.9924  hayır
+roc_momentum        n=1,z=3.0                      5d       asya | %53.81 n=407    | %44.51 n=182     0.9961  hayır
+streak_momentum     m=6                            3d ny_overlap | %53.79 n=383    | %47.01 n=134     0.9574  hayır
+streak_momentum     m=6                            2d     londra | %53.73 n=389    | %53.61 n=166     0.5759  hayır
+rsi_reversion       n=5,lo=10,hi=90                1d ny_overlap | % 53.7 n=514    | %58.62 n=174     0.1287  hayır
+roc_reversion       n=15,z=2.0                     3d ny_overlap | %53.47 n=662    | %51.63 n=306     0.8178  hayır
+rsi_reversion       n=5,lo=10,hi=90                3d     londra | %53.32 n=467    | %50.53 n=188     0.8513  hayır
+streak_momentum     m=7                            5d        all | %53.32 n=662    | %48.64 n=257     0.9644  hayır
+roc_reversion       n=3,z=2.0                      2d ny_overlap | %53.28 n=1190   | %54.12 n=510     0.5062  hayır
+streak_momentum     m=6                            5d        all | %53.26 n=1517   | %46.09 n=575     0.9999  hayır
+
+Testi geçen strateji: 0 / 15 (eşik p < 0.0033)
