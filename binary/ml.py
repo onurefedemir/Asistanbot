@@ -50,14 +50,14 @@ def features(close: pd.Series) -> pd.DataFrame:
     return pd.DataFrame(f).replace([np.inf, -np.inf], np.nan)
 
 
-def target(df: pd.DataFrame, expiry: int, delay: int = DELAY) -> pd.Series:
+def target(df: pd.DataFrame, expiry: int, delay: int = DELAY, bar_sec: int = 60) -> pd.Series:
     """1: girişten `expiry` dk sonra yukarıda, 0: aşağıda, NaN: eşit veya veri boşluğu."""
     c = df["close"].to_numpy()
     ts = df.index.as_unit("s").asi8
     span = expiry + delay
     y = np.full(len(c), np.nan)
     ok = np.zeros(len(c), bool)
-    ok[:-span] = ts[span:] - ts[:-span] == span * 60
+    ok[:-span] = ts[span:] - ts[:-span] == span * bar_sec
     diff = np.full(len(c), np.nan)
     diff[:-span] = c[span:] - c[delay:len(c) - expiry]
     y[ok & (diff > 0)] = 1

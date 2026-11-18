@@ -95,3 +95,15 @@ def test_review_skips_without_key(monkeypatch, tmp_path):
     monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
     monkeypatch.setattr("sys.argv", ["review", "--out", str(tmp_path / "r.md")])
     assert review.main() == 0 and not (tmp_path / "r.md").exists()
+
+
+def test_registry_waits_without_post_registration_data():
+    from binary import registry
+    cand = dict(registry.load()[0])
+    assert cand["threshold"] == 0.60 and cand["expiry_bars"] == 6
+    idx = pd.date_range("2026-10-01", periods=2000, freq="5min", tz="UTC")
+    rng = np.random.default_rng(3)
+    px = pd.DataFrame({p: 1 + np.cumsum(rng.normal(0, 1e-4, len(idx))) for p in ("EURUSD", "GBPUSD")}, index=idx)
+    cand["registered_at"] = "2026-12-01"  # verinin tamamı kayıttan önce
+    r = registry.validate(px, cand)
+    assert r["status"].startswith("BEKLİYOR") and r["payout_85"]["trades"] == 0

@@ -30,7 +30,8 @@ Sana günün otomatik raporları verilecek. Türkçe, kısa (en fazla ~25 satır
 2. Gecikmesiz (delay 0) ve gecikmeli (delay 1) sonuçlar arasındaki farkı yorumla; gecikmesiz kazanç, verideki kotasyon gürültüsünden kaynaklanabilir ve gerçekte alınamayabilir.
 3. Bir önceki değerlendirmeye göre ne değişti?
 4. Denenebilecek en fazla 3 somut fikir (yeni strateji, özellik, filtre ya da test). Her biri için neden işe yarayabileceğini bir cümleyle yaz.
-5. Tek cümlelik karar: "Gerçek paraya geçmek için henüz kanıt yok" ya da hangi koşulların sağlandığı.
+5. forward_validation.txt varsa: ön kayıtlı adayların kayıt sonrası durumunu (BEKLİYOR / GEÇTİ / KALDI) mutlaka yaz; yalnızca bu dosyadaki "GEÇTİ" gerçek bir kanıttır.
+6. Tek cümlelik karar: "Gerçek paraya geçmek için henüz kanıt yok" ya da hangi koşulların sağlandığı.
 
 Kurallar: Sayı uydurma; yalnızca raporlardaki sayıları kullan. Az işlemli (300'den az) sonuçları kanıt sayma. Çok sayıda kombinasyon denendiğinde bazılarının şans eseri iyi görüneceğini unutma. Kazanç vaadinde bulunma."""
 

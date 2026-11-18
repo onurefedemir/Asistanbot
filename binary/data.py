@@ -50,6 +50,19 @@ def fetch_chunk(pair: str, start: int, end: int) -> pd.DataFrame:
     return df
 
 
+def fetch_range(pair: str, interval: str = "5m", rng: str = "60d") -> pd.Series:
+    """Daha uzun geçmiş için kaba aralıklı kapanışlar (Yahoo: 5m → 60 gün, 1h → 730 gün)."""
+    r = requests.get(URL.format(sym=pair), params={"interval": interval, "range": rng}, headers=HEADERS, timeout=30)
+    r.raise_for_status()
+    res = r.json()["chart"]["result"][0]
+    close = pd.Series(res["indicators"]["quote"][0]["close"], index=pd.to_datetime(res["timestamp"], unit="s", utc=True))
+    return close.dropna()
+
+
+def aligned_range(pairs=PAIRS, interval: str = "5m", rng: str = "60d") -> pd.DataFrame:
+    return pd.DataFrame({p: fetch_range(p, interval, rng) for p in pairs}).sort_index()
+
+
 def update(pairs=PAIRS, days: int = 29, path: str = DB) -> dict:
     """Her çift için son kayıttan bugüne kadar eksik veriyi indirir."""
     db = _db(path)

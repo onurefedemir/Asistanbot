@@ -20,20 +20,22 @@ def breakeven(payout: float) -> float:
 
 
 def trades(
-    df: pd.DataFrame, signal: np.ndarray, expiry: int, hours: set[int] | None = None, delay: int = 0
+    df: pd.DataFrame, signal: np.ndarray, expiry: int, hours: set[int] | None = None, delay: int = 0,
+    bar_sec: int = 60,
 ) -> np.ndarray:
     """Her işlem için +1 (kazanç), -1 (kayıp), 0 (iade) dizisi döndürür.
 
     delay: sinyalden kaç mum sonra girileceği. delay=0 sinyal mumunun kapanışından
     girer (iyimser); delay=1 bir dakika sonraki kapanıştan girer. Kazanç delay=1'de
     kayboluyorsa, kaynağı verideki tek mumluk gürültüdür ve gerçekte alınamaz.
+    bar_sec: mum süresi (sn). expiry ve delay mum sayısıdır (1 dk mumda dakika).
     """
     c = df["close"].to_numpy()
     ts = df.index.as_unit("s").asi8.astype(np.int64)
     n = len(c)
     span = expiry + delay
     sig = np.asarray(signal)[: n - span]
-    ok = (sig != 0) & (ts[span:] - ts[: n - span] == span * 60)
+    ok = (sig != 0) & (ts[span:] - ts[: n - span] == span * bar_sec)
     if hours is not None:
         ok &= np.isin(df.index.hour.to_numpy()[: n - span], list(hours))
     idx = np.flatnonzero(ok)

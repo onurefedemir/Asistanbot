@@ -46,19 +46,27 @@ def cross_features(px: pd.DataFrame, pair: str) -> pd.DataFrame:
     return pd.concat([own, out], axis=1).replace([np.inf, -np.inf], np.nan)
 
 
-def evaluate(px: pd.DataFrame, payout: float = 0.85, train_days: int = 14) -> pd.DataFrame:
+def evaluate(px: pd.DataFrame, payout: float = 0.85, train_days: int = 14, bar_sec: int = 60,
+             expiries: list[int] | None = None, thresholds: list[float] | None = None,
+             test_from: pd.Timestamp | None = None) -> pd.DataFrame:
+    """expiries mum sayısıdır. test_from verilirse yalnızca o tarihten sonraki günler test edilir
+    (ön kayıtlı adayların ileri doğrulaması için)."""
+    expiries = expiries or ml.EXPIRIES
+    thresholds = thresholds or THRESHOLDS
     feats, targets, frames = {}, {}, {}
     for pair in px.columns:
         df = px[[pair]].rename(columns={pair: "close"}).dropna()
         frames[pair] = df
         feats[pair] = cross_features(px, pair).reindex(df.index)
-        targets[pair] = {e: ml.target(df, e) for e in ml.EXPIRIES}
+        targets[pair] = {e: ml.target(df, e, bar_sec=bar_sec) for e in expiries}
     days = sorted(px.index.normalize().unique())
     rows = []
-    for e in ml.EXPIRIES:
-        res = {t: [] for t in THRESHOLDS}
+    for e in expiries:
+        res = {t: [] for t in thresholds}
         for i in range(train_days, len(days)):
             lo, day = days[i - train_days], days[i]
+            if test_from is not None and day < test_from:
+                continue
             nxt = day + pd.Timedelta(days=1)
             X, y = [], []
             for pair, df in frames.items():
@@ -79,9 +87,9 @@ def evaluate(px: pd.DataFrame, payout: float = 0.85, train_days: int = 14) -> pd
                 ok = f.notna().all(axis=1).to_numpy()
                 if ok.any():
                     p[ok] = model.predict_proba(f[ok])[:, 1]
-                for t in THRESHOLDS:
-                    res[t].append(backtest.trades(df[m], ml.signal_from_proba(p, t), e, delay=ml.DELAY))
-        for t in THRESHOLDS:
+                for t in thresholds:
+                    res[t].append(backtest.trades(df[m], ml.signal_from_proba(p, t), e, delay=ml.DELAY, bar_sec=bar_sec))
+        for t in thresholds:
             if res[t]:
                 rows.append({"expiry": e, "threshold": t, **backtest.stats(np.concatenate(res[t]), payout)})
     return pd.DataFrame(rows)
