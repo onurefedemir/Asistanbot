@@ -273,3 +273,20 @@ Kullanıcının grafik çizimlerinden çıkarılan iki kural `binary/touches.py`
 | R5 5+ dokunuşta kırılım | %45,6 – %51,5 (800–2.700 işlem) | 16–40 işlem, değerlendirilemez |
 
 12 + 12 testin hiçbiri Bonferroni eşiğini geçmedi. R5 1–5 dk'da yazı-turadan kötü (%45–48): çok test edilen seviye kısa vadede çoğu zaman tutuyor; ama tersi de (%52–54) gerçekçi ödemelerle başa başın altında.
+
+---
+
+# 10. Kullanıcının gözle okuma testi (ilk 30 grafik)
+
+"Yön Okuma Testi" sayfasında rastgele seçilmiş 250 gerçek 1 dk grafik (7 parite, 30 gün); kullanıcı çizim yapıp 5 dk vadeli CALL/PUT/işlem yok kararı veriyor.
+
+| | Sonuç |
+|---|---|
+| Cevaplanan | 30 (27 işlem, 3 işlem yok) |
+| İsabet | **16/27 = %59,3** — %95 güven aralığı %41–%75, p = 0,36 (başa baş %54'e göre) |
+| Önceki oyunlarla toplam | 40 işlemde 24 doğru (%60), p ≈ 0,27 |
+| Yön dağılımı | 21 CALL / 6 PUT (gerçekte 15/15) — belirgin CALL eğilimi |
+| İşlem yok | Ortalama hareket 1,4 pip (işlem alınanlarda 2,9 pip) — sakin piyasayı seçerek atlıyor |
+| Mühürlü kural (karşılaştırma) | Aynı 27 grafikte 18/27; ama 12.735 rastgele anda %50,2 — küçük örneklemde şans |
+
+**Sonuç:** Henüz belirsiz. %59 başa başın üstünde, ama 27 işlemde yazı-turadan ayırt edilemiyor. Karar için ~200 işlem gerekiyor.
