@@ -18,7 +18,7 @@ def test_open_and_close(tmp_path, monkeypatch):
     monkeypatch.setattr(paper.time, "time", lambda: clock["t"])
     price = {"p": 1.0}
     monkeypatch.setattr(paper, "_quotes", lambda pair, now: quotes(now, price["p"]))
-    always_call = paper.Strategy("test", lambda c: np.ones(len(c), dtype=int), 1)
+    always_call = paper.Strategy("test", lambda px, pair: np.ones(len(px), dtype=int), 1)
     db = paper._db(str(tmp_path / "p.db"))
 
     assert paper.step(db, ["EURUSD"], [always_call], log=lambda m: None) == 0
@@ -69,3 +69,29 @@ def test_old_db_gets_selected_column(tmp_path):
     db = paper._db(path)
     assert db.execute("SELECT selected FROM paper_trades").fetchone() == (1,)
     assert "Seçicinin seçtikleri: 1" in paper.report(db)
+
+
+def test_cross_pair_strategy_sees_all_pairs(tmp_path, monkeypatch):
+    clock = {"t": 1_800_000_010.0}
+    monkeypatch.setattr(paper.time, "time", lambda: clock["t"])
+    monkeypatch.setattr(paper, "_quotes", lambda pair, now: quotes(now, 1.0))
+    seen = {}
+    def fn(px, pair):
+        seen[pair] = list(px.columns)
+        return np.zeros(len(px), dtype=int)
+    db = paper._db(str(tmp_path / "c.db"))
+    paper.step(db, ["EURUSD", "GBPUSD"], [paper.Strategy("x", fn, 1)], log=lambda m: None)
+    assert seen == {"EURUSD": ["EURUSD", "GBPUSD"], "GBPUSD": ["EURUSD", "GBPUSD"]}
+
+
+def test_default_strategies_run_on_live_shaped_data(tmp_path, monkeypatch):
+    clock = {"t": 1_800_000_010.0}
+    monkeypatch.setattr(paper.time, "time", lambda: clock["t"])
+    rng = np.random.default_rng(0)
+    def q(pair, now):
+        df = quotes(now, 1.0, n=300)
+        df["close"] = 1 + np.cumsum(rng.normal(0, 1e-4, len(df)))
+        return df
+    monkeypatch.setattr(paper, "_quotes", q)
+    db = paper._db(str(tmp_path / "d.db"))
+    paper.step(db, paper.data.PAIRS, paper.STRATEGIES, log=lambda m: None)  # hata vermemeli

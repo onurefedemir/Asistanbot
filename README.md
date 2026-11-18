@@ -77,6 +77,8 @@ python -m binary.paper --max-trades 10   # 10 işlem kapanınca durur ve özet v
 python -m binary.paper --report   # sanal işlem sonuçları ve seçicinin strateji durumları
 python -m binary.paper --ml       # ML stratejilerini de ekle (günde bir yeniden eğitilir)
 python -m binary.ml evaluate      # ML modelinin kayan pencereli testi (14 gün eğit → ertesi gün test)
+python -m binary.round2           # 2. tur: çiftler arası, mevsimsellik, kırılım vb. 7 yeni aile
+python -m binary.round3           # 3. tur: çiftler arası özellikli ML
 ```
 
 İlk sonuçlar: [docs/binary_research.md](docs/binary_research.md). Özet: gerçekçi girişte başa baş oranını geçen strateji bulunamadı.

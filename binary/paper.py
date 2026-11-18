@@ -23,7 +23,8 @@ import numpy as np
 import pandas as pd
 
 from . import backtest, data, selector
-from . import strategies as S
+from . import round2 as R2
+from . import strategies as S  # noqa: F401  (_single ile eski stratejiler eklenebilir)
 
 PAYOUT = 0.85
 STAKE = 10.0
@@ -32,18 +33,31 @@ STAKE = 10.0
 @dataclass
 class Strategy:
     name: str
-    fn: Callable[[pd.Series], np.ndarray]
+    # fn(px, pair): px = tüm çiftlerin kapanmış 1 dk kapanışları (sütun = çift, index = zaman);
+    # px ile aynı uzunlukta sinyal dizisi döndürür (+1 CALL, -1 PUT, 0 yok)
+    fn: Callable[[pd.DataFrame, str], np.ndarray]
     expiry: int  # dakika
 
 
-# Backtest'te öne çıkan adaylar: gecikmesiz girişte güçlü görünenler + gecikmeli testte en iyi olanlar
+def _single(f):
+    """Yalnızca kendi çiftinin kapanışını kullanan strateji fonksiyonunu sarar."""
+    def run(px, pair):
+        c = px[pair]
+        out = np.zeros(len(px), dtype=int)
+        ok = c.notna().to_numpy()
+        out[ok] = np.asarray(f(c[ok].reset_index(drop=True)))
+        return out
+    return run
+
+
+# 1. turun stratejileri (zscore, roc, rsi, streak) gerçekçi testte başa başı geçemedi → çıkarıldı.
+# Yerine 2. turun çiftler arası aileleri: her ailenin eğitim döneminde en iyi ayarı.
+# Hiçbiri testte kanıtlanmış değil; canlıda seçici ölçecek.
 STRATEGIES = [
-    Strategy("zscore_n10_z2.5_2dk", lambda c: S.zscore_reversion(c, n=10, z=2.5), 2),
-    Strategy("roc_rev_n1_z2_1dk", lambda c: S.roc_reversion(c, n=1, z=2.0), 1),
-    Strategy("roc_rev_n1_z3_1dk", lambda c: S.roc_reversion(c, n=1, z=3.0), 1),
-    Strategy("zscore_n20_z3_1dk", lambda c: S.zscore_reversion(c, n=20, z=3.0), 1),
-    Strategy("rsi5_10_90_1dk", lambda c: S.rsi_reversion(c, n=5, lo=10, hi=90), 1),
-    Strategy("streak_mom6_5dk", lambda c: S.streak_momentum(c, m=6), 5),
+    Strategy("leadlag_k2_z2.5_1dk", lambda px, p: R2.lead_lag(px, p, k=2, z=2.5), 1),
+    Strategy("triangle_n240_z2.5_3dk", lambda px, p: R2.triangle(px, p, n=240, z=2.5), 3),
+    Strategy("usdbasket_k5_z2_3dk", lambda px, p: R2.usd_basket(px, p, k=5, z=2.0), 3),
+    Strategy("volhigh_z2.5_5dk", lambda px, p: R2.vol_filtered(px, p, regime="high", z=2.5), 5),
 ]
 
 
@@ -64,7 +78,7 @@ def _db(path: str) -> sqlite3.Connection:
 
 def _quotes(pair: str, now: int) -> pd.DataFrame | None:
     try:
-        df = data.fetch_chunk(pair, now - 3 * 3600, now + 60)
+        df = data.fetch_chunk(pair, now - 8 * 3600, now + 60)  # üçgen (240) ve oynaklık filtresi (300+) için
     except Exception as e:
         print(f"  {pair}: veri alınamadı ({type(e).__name__})")
         return None
@@ -80,43 +94,47 @@ def step(db: sqlite3.Connection, pairs: list[str], strategies: list[Strategy], l
     ).fetchall()
     open_keys = {(r[1], r[2]) for r in open_rows}
 
-    for pair in pairs:
-        df = _quotes(pair, now)
-        if df is None:
-            continue
-        live_price = float(df["close"].iloc[-1])  # içinde bulunulan dakikanın son fiyatı = anlık fiyat
-        live_ts = int(df["ts"].iloc[-1])
+    quotes = {p: q for p in pairs if (q := _quotes(p, now)) is not None}
 
-        # 1) Vadesi dolan işlemleri kapat
-        for tid, sname, tpair, d, entry_ts, entry_price, expiry in open_rows:
-            if tpair != pair or time.time() < entry_ts + expiry * 60:
-                continue
-            diff = (live_price - entry_price) * d
-            result = "tie" if diff == 0 else ("win" if diff > 0 else "loss")
-            pnl = STAKE * PAYOUT if result == "win" else (0.0 if result == "tie" else -STAKE)
-            db.execute(
-                "UPDATE paper_trades SET exit_ts=?, exit_price=?, result=?, pnl=? WHERE id=?",
-                (time.time(), live_price, result, pnl, tid),
-            )
-            open_keys.discard((sname, tpair))
-            closed += 1
-            mark = {"win": "✅ KAZANÇ", "loss": "❌ KAYIP", "tie": "➖ İADE"}[result]
-            log(f"[{time.strftime('%H:%M:%S')}] #{tid} {mark} {tpair} {sname}: "
-                f"{entry_price:.5f} → {live_price:.5f}  ({pnl:+.2f})")
-
-        # 2) Yeni sinyaller: yalnızca kapanmış mumlarla (backtest ile aynı)
-        done = df[df["ts"] <= now - 60]
-        if len(done) < 60:
+    # 1) Vadesi dolan işlemleri anlık fiyatla kapat
+    for tid, sname, tpair, d, entry_ts, entry_price, expiry in open_rows:
+        if tpair not in quotes or time.time() < entry_ts + expiry * 60:
             continue
-        signal_ts = int(done["ts"].iloc[-1])
+        live_price = float(quotes[tpair]["close"].iloc[-1])
+        diff = (live_price - entry_price) * d
+        result = "tie" if diff == 0 else ("win" if diff > 0 else "loss")
+        pnl = STAKE * PAYOUT if result == "win" else (0.0 if result == "tie" else -STAKE)
+        db.execute(
+            "UPDATE paper_trades SET exit_ts=?, exit_price=?, result=?, pnl=? WHERE id=?",
+            (time.time(), live_price, result, pnl, tid),
+        )
+        open_keys.discard((sname, tpair))
+        closed += 1
+        mark = {"win": "✅ KAZANÇ", "loss": "❌ KAYIP", "tie": "➖ İADE"}[result]
+        log(f"[{time.strftime('%H:%M:%S')}] #{tid} {mark} {tpair} {sname}: "
+            f"{entry_price:.5f} → {live_price:.5f}  ({pnl:+.2f})")
+
+    # 2) Yeni sinyaller: yalnızca kapanmış mumlarla (backtest ile aynı), tüm çiftler birlikte
+    done = {p: q[q["ts"] <= now - 60] for p, q in quotes.items()}
+    done = {p: d for p, d in done.items() if len(d) >= 60}
+    if not done:
+        db.commit()
+        return closed
+    px = pd.DataFrame(
+        {p: pd.Series(d["close"].to_numpy(), index=pd.to_datetime(d["ts"], unit="s", utc=True)) for p, d in done.items()}
+    ).sort_index()
+    for pair, d in done.items():
+        signal_ts = int(d["ts"].iloc[-1])
+        live_ts = int(quotes[pair]["ts"].iloc[-1])
+        live_price = float(quotes[pair]["close"].iloc[-1])  # içinde bulunulan dakikanın son fiyatı = anlık fiyat
         # Sinyal mumu kapanalı 45 sn'den fazla olduysa geç kalınmıştır
         if now - (signal_ts + 60) > 45 or live_ts <= signal_ts:
             continue
-        close = done["close"].reset_index(drop=True)
+        row = px.index.get_loc(pd.Timestamp(signal_ts, unit="s", tz="UTC"))
         for st in strategies:
             if (st.name, pair) in open_keys:
                 continue
-            sig = int(np.asarray(st.fn(close))[-1])
+            sig = int(np.nan_to_num(np.asarray(st.fn(px, pair), dtype=float)[row]))
             if not sig:
                 continue
             dup = db.execute(
@@ -197,7 +215,7 @@ def main():
             ml_state["bundle"] = b = ml.train(ml.load_frames(a.data_db))
             print("ML: model hazır.", flush=True)
         return [
-            Strategy(f"ml_{e}dk", lambda c, e=e: ml.predict_signal(b, c, e), e) for e in (1, 5)
+            Strategy(f"ml_{e}dk", _single(lambda c, e=e: ml.predict_signal(b, c, e)), e) for e in (1, 5)
         ]
 
     n_strats = len(STRATEGIES) + (2 if a.ml else 0)
