@@ -198,3 +198,17 @@ Tüm turlar 15/30 dk vadeyle yeniden çalıştırıldı (Yahoo, 30 gün, 10 pari
 **Gözlem:** Çiftler arası ML'de 30 dk vadede eşik yükseldikçe isabet düzenli artıyor (%52,1 → %54,8 → %56,1). Zayıf bir sinyalin işareti olabilir; ancak anlamlı değil, test dönemi yalnızca ~8 gün ve Pocket'ın gerçekçi ödemesinde (%75 → başa baş %57,1) yine zararda. Daha fazla veri biriktikçe (günlük görev) yeniden bakılmalı.
 
 **Sonuç:** Vadeyi 15–30 dk'ya uzatmak tabloyu değiştirmedi; kalıcı ve kanıtlanmış avantaj yok.
+
+---
+
+# 6. Daha fazla veri ve ön kayıt
+
+**Neden ön kayıt?** "Testi geçene kadar dene" yaklaşımında yeterince deneme yapılınca bir şey mutlaka şans eseri geçer. Bu yüzden keşifte iyi görünen her aday parametreleri dondurularak `binary/candidates.json`'a tarihle yazılır ve yalnızca **kayıt tarihinden sonra oluşan** veride test edilir (`binary/registry.py`, günlük görevde `forward_validation.txt`).
+
+**5 dk veriyle (≈84 gün) çiftler arası ML, 30 dk vade, eşik 0,60:**
+- Keşif: 2.856 işlem, **%56,86** (%85 ödemede başa baş %54,05); 10 paritenin 9'u, 9 haftanın 7'si başa başın üstünde. Giriş 5 dk gecikmeli (temkinli).
+- **Zayıflıyor:** ilk yarı %59,2 → ikinci yarı %54,7; son haftalar %51,7 / %55,4 / %50,9 / %56,2.
+- **1 Kasım'da kaydedilmiş olsaydı:** sonraki 17 günde 691 işlem, %54,56, p = 0,41 → **KALDI**.
+- %75 ödemede (Pocket medyanı) başa baş %57,14; keşif sonucu bile bu eşiğin altında.
+
+Aday `cross_ml_30m_p60` olarak 18 Kasım'da kaydedildi. Günde ~45 işlem ürettiği için 300 işleme ~7 iş gününde ulaşır; o zamana kadar durum **BEKLİYOR**.
