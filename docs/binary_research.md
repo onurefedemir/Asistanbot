@@ -181,3 +181,20 @@ Yahoo'da seçilmiş 6 aday × 4 vade × 2 gecikme = 48 test; gerçek ödemelerle
 
 ## Sonuç
 İki bağımsız çalışma (Yahoo + HistData + Pocket'ın kendi akışı + 222 bin canlı demo sinyal) aynı sonuca varıyor: 1–5 dk vadede Pocket Option'da kârlı bir yön tahmini yok. Düşük ve değişken ödemeler, isabet %50'nin biraz üstüne çıksa bile işlemi zarara sokuyor.
+
+---
+
+# 5. Daha uzun vade: 15 ve 30 dakika
+
+Tüm turlar 15/30 dk vadeyle yeniden çalıştırıldı (Yahoo, 30 gün, 10 parite, 1 dk giriş gecikmesi). 15+ dk için daha uzun geriye bakan parametreler eklendi (z-skor 60–240, ROC 15–60, kırılım 240–480, üçgen 480–960 vb.).
+
+| Tur | Kombinasyon | Testi geçen | Test döneminde en iyi (yeterli işlemle) |
+|---|---|---|---|
+| 1 — kural stratejileri | 856 | 0 / 15 | eğitimin en iyileri testte %44–55 |
+| 2 — çiftler arası, kırılım, mevsimsellik… | 166 | 0 / 14 | %48–53 (mevsimsellik yine eğitimde %75 → testte %51) |
+| ML (tek parite) | 8 | 0 | 30 dk, eşik 0,60: %56,4 (n=172, p=0,29) |
+| 3 — çiftler arası ML | 8 | 0 | 30 dk, eşik 0,60: %56,1 (n=540, p=0,18) |
+
+**Gözlem:** Çiftler arası ML'de 30 dk vadede eşik yükseldikçe isabet düzenli artıyor (%52,1 → %54,8 → %56,1). Zayıf bir sinyalin işareti olabilir; ancak anlamlı değil, test dönemi yalnızca ~8 gün ve Pocket'ın gerçekçi ödemesinde (%75 → başa baş %57,1) yine zararda. Daha fazla veri biriktikçe (günlük görev) yeniden bakılmalı.
+
+**Sonuç:** Vadeyi 15–30 dk'ya uzatmak tabloyu değiştirmedi; kalıcı ve kanıtlanmış avantaj yok.

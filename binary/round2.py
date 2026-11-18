@@ -133,6 +133,15 @@ GRID = {
 }
 
 
+LONG_GRID = {
+    "lead_lag": {"k": [15, 30], "z": [1.0, 1.5, 2.0]},
+    "triangle": {"n": [480, 960], "z": [1.5, 2.0, 2.5]},
+    "usd_basket": {"k": [30, 60], "z": [1.0, 1.5, 2.0]},
+    "breakout": {"n": [240, 480], "mode": ["mom", "rev"]},
+    "mtf_pullback": {"slow": [48, 96], "rsi_n": [14]},
+}
+
+
 def seasonality_signals(px: pd.DataFrame, pair: str, cut, expiry: int, min_obs: int, bias: float):
     """Eğitim döneminde (saat, dakika) hücresine göre yön eğilimi öğrenir; tüm döneme uygular."""
     c = px[pair]
@@ -151,7 +160,10 @@ def run(db: str, payout: float = 0.85, train_frac: float = 0.7, min_trades: int 
     px = aligned(db)
     cut = px.index[int(len(px) * train_frac)]
     configs = []
-    for name, (fn, space) in GRID.items():
+    spaces = [(n, fn, sp) for n, (fn, sp) in GRID.items()]
+    if max(EXPIRIES) >= 15:
+        spaces += [(n, GRID[n][0], sp) for n, sp in LONG_GRID.items()]
+    for name, fn, space in spaces:
         for vals in itertools.product(*space.values()):
             configs.append((name, dict(zip(space, vals)), fn))
     for e in EXPIRIES:
@@ -219,7 +231,10 @@ if __name__ == "__main__":
     ap.add_argument("--db", default=data.DB)
     ap.add_argument("--payout", type=float, default=0.85)
     ap.add_argument("--json")
+    ap.add_argument("--expiries", type=int, nargs="*", help="Vadeler (dk), ör. --expiries 15 30")
     a = ap.parse_args()
+    if a.expiries:
+        EXPIRIES[:] = a.expiries
     res = run(a.db, a.payout)
     print(report(res))
     if a.json:

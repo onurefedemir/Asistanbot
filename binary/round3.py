@@ -91,7 +91,10 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--db", default="binary.db")
     ap.add_argument("--payout", type=float, default=0.85)
+    ap.add_argument("--expiries", type=int, nargs="*", help="Vadeler (dk), ör. --expiries 15 30")
     a = ap.parse_args()
+    if a.expiries:
+        ml.EXPIRIES[:] = a.expiries
     r = evaluate(aligned(a.db), a.payout)
     print(f"3. tur — çiftler arası özellikli ML, kayan pencere (14 gün → ertesi gün), giriş gecikmesi 1 dk, "
           f"başa baş %{backtest.breakeven(a.payout) * 100:.2f}\n")

@@ -77,12 +77,29 @@ STRATEGIES = {
 }
 
 
-def grid():
-    """(strateji adı, fonksiyon, parametreler) üçlülerini üretir. RSI'de lo+hi=100 şartı."""
-    for name, (fn, space) in STRATEGIES.items():
+# 15-30 dk vadeler için daha uzun geriye bakan parametreler (kısa vadeli ızgaraya eklenir)
+LONG_STRATEGIES = {
+    "rsi_reversion": (rsi_reversion, {"n": [14, 30, 60], "lo": [20, 30], "hi": [70, 80]}),
+    "zscore_reversion": (zscore_reversion, {"n": [60, 120, 240], "z": [1.5, 2.0, 2.5]}),
+    "roc_momentum": (roc_momentum, {"n": [15, 30, 60], "z": [1.0, 1.5, 2.0]}),
+    "roc_reversion": (roc_reversion, {"n": [15, 30, 60], "z": [1.0, 1.5, 2.0]}),
+    "ema_trend_pullback": (ema_trend_pullback, {"fast": [21, 50], "slow": [200, 400], "n": [5, 14]}),
+}
+
+
+def grid(long: bool = False):
+    """(strateji adı, fonksiyon, parametreler) üçlülerini üretir. RSI'de lo+hi=100 şartı.
+    long=True: 15+ dk vadeler için uzun parametreler de eklenir."""
+    spaces = list(STRATEGIES.items()) + (list(LONG_STRATEGIES.items()) if long else [])
+    seen = set()
+    for name, (fn, space) in spaces:
         keys = list(space)
         for vals in itertools.product(*space.values()):
             params = dict(zip(keys, vals))
             if name == "rsi_reversion" and params["lo"] + params["hi"] != 100:
                 continue
+            key = (name, tuple(sorted(params.items())))
+            if key in seen:  # kısa ve uzun ızgarada ortak olan kombinasyonlar bir kez
+                continue
+            seen.add(key)
             yield name, fn, params

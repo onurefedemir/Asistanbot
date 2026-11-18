@@ -36,7 +36,7 @@ def run(db: str, payout: float, delay: int = 1, train_frac: float = 0.7, min_tra
     period = {"train": (t_all.min(), cut), "test": (cut, t_all.max())}
 
     rows = []
-    for name, fn, params in strategies.grid():
+    for name, fn, params in strategies.grid(long=max(EXPIRIES) >= 15):
         res = {(e, s, part): [] for e in EXPIRIES for s in SESSIONS for part in ("train", "test")}
         for df in frames.values():
             sig = np.asarray(fn(df["close"], **params))
@@ -81,7 +81,7 @@ def report(r: dict) -> str:
         f"Eğitim: {r['train_period'][0][:16]} → {r['train_period'][1][:16]}",
         f"Test:   {r['test_period'][0][:16]} → {r['test_period'][1][:16]}",
         f"Ödeme %{r['payout']*100:.0f} → başa baş kazanma oranı %{r['breakeven']}",
-        f"Giriş gecikmesi: {r['delay']} mum",
+        f"Giriş gecikmesi: {r['delay']} mum, vadeler: {', '.join(map(str, EXPIRIES))} dk",
         f"Denenen kombinasyon: {r['combinations_tested']}",
         "",
         f"{'strateji':<20}{'parametre':<28}{'vade':>5}{'seans':>11} | {'eğitim':>15} | {'test':>15} {'p':>7}  geçti",
@@ -107,7 +107,10 @@ if __name__ == "__main__":
                     help="Sinyalden sonra kaç mum beklenip girileceği. 0 iyimserdir: Yahoo verisindeki "
                          "tek mumluk gürültü sahte kazanç üretir (README'ye bakın).")
     ap.add_argument("--json", help="Sonuçları JSON olarak kaydet")
+    ap.add_argument("--expiries", type=int, nargs="*", help="Vadeler (dk), ör. --expiries 15 30")
     a = ap.parse_args()
+    if a.expiries:
+        EXPIRIES[:] = a.expiries
     res = run(a.db, a.payout, a.delay)
     print(report(res))
     if a.json:

@@ -147,8 +147,11 @@ if __name__ == "__main__":
     ap.add_argument("command", choices=["evaluate", "train"])
     ap.add_argument("--db", default=data.DB)
     ap.add_argument("--payout", type=float, default=0.85)
+    ap.add_argument("--expiries", type=int, nargs="*", help="Vadeler (dk), ör. --expiries 15 30")
     ap.add_argument("--out", default=MODEL_FILE)
     a = ap.parse_args()
+    if a.expiries:
+        EXPIRIES[:] = a.expiries
     frames = load_frames(a.db)
     if a.command == "evaluate":
         r = evaluate(frames, a.payout)
