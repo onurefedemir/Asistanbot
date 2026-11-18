@@ -83,4 +83,6 @@ python -m binary.ml evaluate      # ML modelinin kayan pencereli testi (14 gün 
 
 **Otomatik veri toplama:** `.github/workflows/veri-topla.yml` her gün 06:17 TSİ'de GitHub'ın sunucularında çalışır (PC'nin açık olması gerekmez). Veriyi ve güncel araştırma raporlarını `data` dalına kaydeder; `main` dalına dokunmaz. En son sonuçlar: `data` dalındaki `research_delay1.txt`. Elle çalıştırmak için GitHub → Actions → "Veri topla" → Run workflow.
 
+**Claude'un günlük değerlendirmesi:** GitHub'da depo → Settings → Secrets and variables → Actions → New repository secret: ad `ANTHROPIC_API_KEY`, değer API anahtarınız. Eklendikten sonra günlük görev `data` dalına `review.md` yazar (günde bir kısa istek; anahtar yoksa adım atlanır). PC'de elle: `python -m binary.review --paper-db paper.db research_delay1.txt`.
+
 PC'de toplanmış veriyi kullanmak için: `git fetch origin data && git archive origin/data candles | tar -x && python -m binary.data --import-csv candles`

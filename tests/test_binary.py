@@ -69,3 +69,29 @@ def test_ml_has_no_edge_on_random_walk():
     r = ml.evaluate(frames, train_days=14)
     big = r[r.trades > 300]
     assert len(big) and (big.win_rate.between(45, 55)).all(), r
+
+
+def test_review_builds_prompt_and_reads_text(tmp_path, monkeypatch):
+    from types import SimpleNamespace as NS
+    from binary import review
+    f = tmp_path / "research_delay1.txt"
+    f.write_text("Testi geçen strateji: 0 / 15", encoding="utf-8")
+    prompt = review.build_prompt([str(f), str(tmp_path / "yok.txt")], "Tüm sinyaller: 10 işlem", "dünkü not")
+    assert "Testi geçen strateji: 0 / 15" in prompt and "dünkü not" in prompt and "yok.txt" not in prompt
+    sent = {}
+    def create(**kw):
+        sent.update(kw)
+        return NS(stop_reason="end_turn", content=[NS(type="thinking"), NS(type="text", text="Kanıt yok.")])
+    client = NS(beta=NS(messages=NS(create=create)))
+    assert review.review(prompt, client) == "Kanıt yok."
+    assert sent["model"] == "claude-opus-5-5" and sent["fallbacks"] == "default"
+    refused = NS(beta=NS(messages=NS(create=lambda **kw: NS(stop_reason="refusal", content=[]))))
+    assert "üretilemedi" in review.review(prompt, refused)
+
+
+def test_review_skips_without_key(monkeypatch, tmp_path):
+    from binary import review
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+    monkeypatch.setattr("sys.argv", ["review", "--out", str(tmp_path / "r.md")])
+    assert review.main() == 0 and not (tmp_path / "r.md").exists()
