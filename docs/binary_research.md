@@ -156,3 +156,28 @@ Testi geçen: 0 / 14 (eşik p < 0.0036)
 | "Pocket Option bot / sinyal" depoları | **Kesinlikle alınmadı** | Resmî olmayan API kullanır (hesap kapatma riski), bir kısmı giriş bilgisi toplar; hiçbiri doğrulanabilir sonuç sunmaz |
 
 **Asıl darboğaz ajan değil, veri.** Yahoo verisi Pocket Option'ın fiyat akışı değil; saniye düzeyinde de değil. En değerli sonraki adım: kullanıcının PC'sindeki Pocket Option kayıtlarıyla (platformun kendi akışı) aynı testleri tekrarlamak.
+
+---
+
+# 4. Pocket Option'ın kendi verisiyle test (16 Kasım canlı demo kaydı)
+
+Kaynak: kullanıcının PC'sindeki "Yön tahmini botu" oturumunun canlı kaydı (`results_20261116.jsonl`, 222.763 sinyal, 41 strateji, 19 parite, 09:36–16:37 UTC). Veri depoya eklenmedi; analiz kodu `binary/pocket_log.py`.
+
+## Ödemeler beklenenden çok düşük
+- Medyan ödeme **%75**; sinyallerin **%41,7**'sinde ödeme %70'in altında, %10'unda %40 ve altında.
+- Pariteye göre büyük fark: GBPUSD medyan %50 (başa baş %66,7), GBPJPY %86.
+- Gün içinde düşüyor: 09 UTC medyan %89 → 12 UTC %69.
+- Gerçek ödemelerle ağırlıklı başa baş **%60,3**; kayıttaki genel isabet **%48,84** → işlem başı beklenen **−%18**.
+- Yalnızca yüksek ödemeli işlemler: ödeme ≥ %85'te isabet %48,74 (başa baş %53,16); ≥ %90'da %48,20 (başa baş %52,19).
+
+## Gizli avantajlı köşe var mı?
+Strateji (40), parite (19), vade (4), saat (7), strateji×vade (148), strateji×parite (472) hücrelerinin **hiçbiri** Bonferroni eşiğini geçmedi. En iyi görünen strateji×parite hücreleri (%62–67, 100–377 işlem) 472 hücre arasında şans eseri beklenecek düzeyde.
+
+## Yahoo'daki "sahte ortalamaya dönüş" Pocket'ta var mı?
+Pocket akışında dakikalık getirilerin otokorelasyonu Yahoo'dakinden belirgin şekilde zayıf (EURUSD 0,000 vs Yahoo −0,13; USDCAD −0,12 vs −0,31). Yahoo'da gecikmesiz girişte görülen %60+ kazanç büyük ölçüde Yahoo verisine özgüydü; Pocket'ta yakalanacak bir şey değil.
+
+## Bu oturumun adayları, Pocket verisinde (örneklem dışı)
+Yahoo'da seçilmiş 6 aday × 4 vade × 2 gecikme = 48 test; gerçek ödemelerle **hiçbiri** Bonferroni eşiğini (p < 0,00104) geçmedi. Çiftler arası adaylar 7 saatlik seride çok az sinyal üretti (1–18 işlem); değerlendirilemez.
+
+## Sonuç
+İki bağımsız çalışma (Yahoo + HistData + Pocket'ın kendi akışı + 222 bin canlı demo sinyal) aynı sonuca varıyor: 1–5 dk vadede Pocket Option'da kârlı bir yön tahmini yok. Düşük ve değişken ödemeler, isabet %50'nin biraz üstüne çıksa bile işlemi zarara sokuyor.
