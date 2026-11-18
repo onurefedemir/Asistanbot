@@ -3,6 +3,7 @@
 #   candles/YYYY-MM.csv.gz aylık 1 dk mumlar (her gün yalnızca içinde bulunulan ay değişir)
 #   research_delay1.txt    gerçekçi girişle (1 dk gecikme) strateji testi
 #   research_delay0.txt    gecikmesiz giriş (iyimser) strateji testi
+#   ml_report.txt          günlük yeniden eğitilen ML modelinin kayan pencereli testi
 # Elle çalıştırmak için: GitHub → Actions → "Veri topla" → Run workflow
 name: Veri topla
 
@@ -31,7 +32,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - run: pip install pandas numpy requests
+      - run: pip install pandas numpy requests scikit-learn joblib
 
       - name: Önceki veriyi data dalından al
         run: |
@@ -49,13 +50,14 @@ jobs:
         run: |
           python -m binary.research --delay 1 > research_delay1.txt
           python -m binary.research --delay 0 > research_delay0.txt
-          cat research_delay1.txt
+          python -m binary.ml evaluate > ml_report.txt
+          cat research_delay1.txt ml_report.txt
 
       - name: data dalına kaydet
         run: |
           OUT="$RUNNER_TEMP/out"
           mkdir -p "$OUT"
-          mv candles research_delay1.txt research_delay0.txt "$OUT/"
+          mv candles research_delay1.txt research_delay0.txt ml_report.txt "$OUT/"
           rm -f binary.db
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
@@ -66,6 +68,6 @@ jobs:
             git rm -rfq .
           fi
           cp -r "$OUT"/* .
-          git add -f candles research_delay1.txt research_delay0.txt
+          git add -f candles research_delay1.txt research_delay0.txt ml_report.txt
           git commit -qm "Veri: $(date -u +%F)" || { echo "Değişiklik yok"; exit 0; }
           git push origin data

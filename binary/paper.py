@@ -176,17 +176,37 @@ def main():
     ap.add_argument("--max-trades", type=int, default=0, help="Bu kadar işlem kapanınca dur (0 = sınırsız)")
     ap.add_argument("--poll", type=float, default=5, help="Döngüler arası bekleme (sn)")
     ap.add_argument("--report", action="store_true")
+    ap.add_argument("--ml", action="store_true",
+                    help="Makine öğrenmesi stratejilerini de ekle (günde bir kez yeni veriyle yeniden eğitilir)")
+    ap.add_argument("--data-db", default=data.DB, help="ML eğitimi için 1 dk veri veritabanı")
     a = ap.parse_args()
     db = _db(a.db)
     if a.report:
         print(report(db))
         return
     start_closed = db.execute("SELECT COUNT(*) FROM paper_trades WHERE result IS NOT NULL").fetchone()[0]
-    print(f"Sanal işlem motoru başladı: {len(a.pairs)} çift, {len(STRATEGIES)} strateji. "
+    ml_state = {"bundle": None}
+
+    def ml_strategies() -> list[Strategy]:
+        from . import ml
+
+        b = ml_state["bundle"]
+        if b is None or time.time() - b["trained_at"] > 24 * 3600:
+            print("ML: veri güncelleniyor ve model yeniden eğitiliyor...", flush=True)
+            data.update(path=a.data_db)
+            ml_state["bundle"] = b = ml.train(ml.load_frames(a.data_db))
+            print("ML: model hazır.", flush=True)
+        return [
+            Strategy(f"ml_{e}dk", lambda c, e=e: ml.predict_signal(b, c, e), e) for e in (1, 5)
+        ]
+
+    n_strats = len(STRATEGIES) + (2 if a.ml else 0)
+    print(f"Sanal işlem motoru başladı: {len(a.pairs)} çift, {n_strats} strateji. "
           f"Hiçbir platformda işlem açılmaz.", flush=True)
     try:
         while True:
-            step(db, a.pairs, STRATEGIES, log=lambda m: print(m, flush=True))
+            strategies = STRATEGIES + (ml_strategies() if a.ml else [])
+            step(db, a.pairs, strategies, log=lambda m: print(m, flush=True))
             closed = db.execute("SELECT COUNT(*) FROM paper_trades WHERE result IS NOT NULL").fetchone()[0]
             if a.max_trades and closed - start_closed >= a.max_trades:
                 break

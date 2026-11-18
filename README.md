@@ -74,7 +74,9 @@ python -m binary.live --journal   # demo sonuçlarını girin
 python -m binary.live --stats     # demo kazanma oranı ve başa baş karşılaştırması
 python -m binary.paper            # canlı izleyip kendi karar veren SANAL işlem motoru (tıklama yapmaz)
 python -m binary.paper --max-trades 10   # 10 işlem kapanınca durur ve özet verir
-python -m binary.paper --report   # sanal işlem sonuçları
+python -m binary.paper --report   # sanal işlem sonuçları ve seçicinin strateji durumları
+python -m binary.paper --ml       # ML stratejilerini de ekle (günde bir yeniden eğitilir)
+python -m binary.ml evaluate      # ML modelinin kayan pencereli testi (14 gün eğit → ertesi gün test)
 ```
 
 İlk sonuçlar: [docs/binary_research.md](docs/binary_research.md). Özet: gerçekçi girişte başa baş oranını geçen strateji bulunamadı.
