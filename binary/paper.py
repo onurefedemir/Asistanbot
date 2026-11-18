@@ -22,7 +22,7 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 
-from . import backtest, data
+from . import backtest, data, selector
 from . import strategies as S
 
 PAYOUT = 0.85
@@ -55,6 +55,10 @@ def _db(path: str) -> sqlite3.Connection:
             signal_ts INTEGER, entry_ts REAL, entry_price REAL, expiry INTEGER,
             exit_ts REAL, exit_price REAL, result TEXT, pnl REAL)"""
     )
+    cols = {r[1] for r in db.execute("PRAGMA table_info(paper_trades)")}
+    if "selected" not in cols:
+        # selected=1: seçicinin "gerçekte yapardım" dediği işlem; 0: yalnızca gölgede izlenen sinyal
+        db.execute("ALTER TABLE paper_trades ADD COLUMN selected INTEGER DEFAULT 1")
     return db
 
 
@@ -120,37 +124,46 @@ def step(db: sqlite3.Connection, pairs: list[str], strategies: list[Strategy], l
             ).fetchone()
             if dup:
                 continue
+            chosen = selector.choose(db, st.name, PAYOUT)
             cur = db.execute(
-                "INSERT INTO paper_trades(strategy,pair,direction,signal_ts,entry_ts,entry_price,expiry)"
-                " VALUES(?,?,?,?,?,?,?)",
-                (st.name, pair, sig, signal_ts, time.time(), live_price, st.expiry),
+                "INSERT INTO paper_trades(strategy,pair,direction,signal_ts,entry_ts,entry_price,expiry,selected)"
+                " VALUES(?,?,?,?,?,?,?,?)",
+                (st.name, pair, sig, signal_ts, time.time(), live_price, st.expiry, int(chosen)),
             )
             open_keys.add((st.name, pair))
             log(f"[{time.strftime('%H:%M:%S')}] #{cur.lastrowid} AÇ {pair} {'CALL ↑' if sig > 0 else 'PUT ↓'} "
-                f"{st.expiry}dk @ {live_price:.5f}  ({st.name})")
+                f"{st.expiry}dk @ {live_price:.5f}  ({st.name}){'' if chosen else '  [gölge]'}")
     db.commit()
     return closed
 
 
 def report(db: sqlite3.Connection) -> str:
-    rows = db.execute("SELECT strategy, pair, result, pnl FROM paper_trades WHERE result IS NOT NULL").fetchall()
+    rows = db.execute(
+        "SELECT strategy, pair, result, pnl, selected FROM paper_trades WHERE result IS NOT NULL"
+    ).fetchall()
     if not rows:
         return "Henüz kapanmış işlem yok."
-    df = pd.DataFrame(rows, columns=["strategy", "pair", "result", "pnl"])
-    code = df["result"].map({"win": 1, "loss": -1, "tie": 0}).to_numpy(dtype=np.int8)
-    total = backtest.stats(code, PAYOUT)
-    lines = [
-        f"Kapanan işlem: {len(df)}  (kazanç {int((df.result == 'win').sum())}, "
-        f"kayıp {int((df.result == 'loss').sum())}, iade {int((df.result == 'tie').sum())})",
-        f"Kazanma oranı: %{total['win_rate']}  |  başa baş: %{total['breakeven']}",
-        f"Toplam K/Z: {df.pnl.sum():+.2f} (işlem başı {STAKE:.0f} birim, ödeme %{PAYOUT*100:.0f})",
-        f"Anlamlılık: p={total['p_value']} (0.01'in altı olmadıkça avantaj kanıtlanmış sayılmaz)",
+    df = pd.DataFrame(rows, columns=["strategy", "pair", "result", "pnl", "selected"])
+
+    def summary(d, title):
+        code = d["result"].map({"win": 1, "loss": -1, "tie": 0}).to_numpy(dtype=np.int8)
+        s = backtest.stats(code, PAYOUT)
+        return [
+            f"{title}: {len(d)} işlem (kazanç {int((d.result == 'win').sum())}, "
+            f"kayıp {int((d.result == 'loss').sum())}, iade {int((d.result == 'tie').sum())})",
+            f"  kazanma %{s['win_rate']} | başa baş %{s['breakeven']} | K/Z {d.pnl.sum():+.2f} | p={s['p_value']}",
+        ]
+
+    lines = summary(df, "Tüm sinyaller")
+    lines += summary(df[df.selected == 1], "Seçicinin seçtikleri")
+    lines += [
+        f"(işlem başı {STAKE:.0f} birim, ödeme %{PAYOUT*100:.0f}; p < 0.01 olmadıkça avantaj kanıtlanmış sayılmaz)",
         "",
-        "Strateji bazında:",
+        f"{'strateji':<22}{'işlem':>6}{'kazanma':>9}{'P(>başa baş)':>14}  durum",
     ]
-    for name, g in df.groupby("strategy"):
-        w, n = int((g.result == "win").sum()), int((g.result != "tie").sum())
-        lines.append(f"  {name:<22} {w}/{n}  K/Z {g.pnl.sum():+.2f}")
+    for r in selector.table(db, PAYOUT):
+        lines.append(f"{r['strategy']:<22}{r['trades']:>6}{'%' + str(r['win_rate']):>9}"
+                     f"{'%' + str(r['prob_above_breakeven']):>14}  {r['status']}")
     if len(df) < 300:
         lines += ["", f"⚠️ {len(df)} işlem istatistik için çok az; en az 300 işlem gerekir."]
     return "\n".join(lines)
