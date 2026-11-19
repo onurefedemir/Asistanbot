@@ -212,3 +212,96 @@ Tüm turlar 15/30 dk vadeyle yeniden çalıştırıldı (Yahoo, 30 gün, 10 pari
 - %75 ödemede (Pocket medyanı) başa baş %57,14; keşif sonucu bile bu eşiğin altında.
 
 Aday `cross_ml_30m_p60` olarak 18 Kasım'da kaydedildi. Günde ~45 işlem ürettiği için 300 işleme ~7 iş gününde ulaşır; o zamana kadar durum **BEKLİYOR**.
+
+---
+
+# 7. TradingView "UT Bot Alerts" testi
+
+Kullanıcının kullandığı ayarlar: Key Value 1, ATR Period 10, Heikin Ashi kapalı, 1 dk grafik (AUDCHF). Gösterge `binary/utbot.py`'de Pine Script mantığıyla birebir yazıldı ve kullanıcının 18 Kasım 12:00–12:36 (UTC+2) AUDCHF ekran görüntüsündeki sinyaller (Buy ~12:13, Sell ~12:18, Buy ~12:23) 1–2 dk farkla yeniden üretildi (fark veri kaynağından).
+
+| Veri | Vade | Gecikmesiz giriş | 1 mum gecikmeli | Başa baş |
+|---|---|---|---|---|
+| Yahoo, 30 gün, 11 parite (%85 ödeme) | 1 dk | **%44,4** (68.699 işlem) | %49,8 | %54,05 |
+| | 5 dk | %45,4 | %49,7 | |
+| | 15 dk | %47,1 | %50,0 | |
+| | 30 dk | %48,2 | %49,7 | |
+| Pocket'ın kendi fiyatları, gerçek ödemeler | 1 dk | %47,9 (1.719) | %48,3 | ~%58,6 |
+| | 5 dk | %49,2 | %51,6 | |
+| | 15 dk | %54,0 (378) | %55,4 (352) | |
+
+Diğer popüler ayarlar (Key 2/ATR 1, Key 3/ATR 10, Key 2/ATR 300) ve gerçek high/low ile ATR: hepsi %42–48. **12 testin hiçbiri başa başa yaklaşmadı; kısa vadede yazı-turadan da kötü.**
+
+Neden? UT Bot bir trend takip göstergesi: sinyal, fiyat zaten bir yöne hareket ettikten sonra gelir. 1–5 dk ölçeğinde fiyat kısa hareketlerden sonra hafifçe geri dönme eğiliminde olduğu için giriş çoğu zaman yerel uçta yapılır.
+
+"Tersini yapmak" da çözüm değil: Yahoo'da gecikmesiz tersi %55,6 görünür ama bu, 1. turda görülen veri gürültüsüdür (1 mum gecikmeyle ~%50). Pocket'ta tersi %52,1 olur; gerçek ödemelerle başa baş %58,6.
+
+**"10'da 8" iddiası:** 68.699 işlemde %44,4. 10 işlemlik bir pencerede 8 doğru, bu sistemde de şans eseri sık sık görülür; uzun vadede sonuç zarar.
+
+---
+
+# 8. Kullanıcının TradingView favorileri
+
+Göstergeler açık kaynak mantıklarıyla, varsayılan ayarlarla `binary/tv_indicators.py`'de yeniden yazıldı (kaynak kodlarıyla satır satır karşılaştırılamadı; TradingView'e bu ortamdan erişim yok). JCFBaux Volatility yön üretmediği için diğerlerine yüksek/düşük oynaklık filtresi olarak eklendi.
+
+**Yahoo, 30 gün, 11 parite, %85 ödeme (başa baş %54,05) — isabet aralığı:**
+
+| Gösterge | Gecikmesiz (1/5/15/30 dk) | 1 mum gecikmeli |
+|---|---|---|
+| UT Bot (QuantNomad) | %44,4 – %48,3 | %49,7 – %50,1 |
+| Trendlines with Breaks (LuxAlgo) | %43,5 – %47,3 | %49,2 – %50,9 |
+| TRAMA (LuxAlgo) | %43,2 – %50,2 | %49,7 – %51,0 |
+| Gaussian N-Pole (Loxx) | %48,4 – %50,5 | %50,1 – %51,0 |
+| RSI Divergence (Libertus) | %49,0 – %50,5 | %48,7 – %50,8 |
+| RSI Gizli Divergence | %47,6 – %50,5 | %48,0 – %52,4 |
+| S/R Channels (LonesomeTheBlue) | %42,4 – %48,1 | %49,0 – %50,9 |
+
+Oynaklık filtresiyle en iyisi: RSI Divergence + yüksek oynaklık, 30 dk: %54,98 (1.597 işlem, p = 0,24).
+
+**Pocket'ın kendi fiyatları, gerçek ödemeler (başa baş ~%58,6):** hepsi %27–59, yüksek isabetliler çok az işlemli (örn. RSI Divergence 30 dk %58,6, 58 işlem).
+
+**Sonuç:** İki veri setinde 336 testin hiçbiri Bonferroni eşiğini geçmedi. Trend takip eden göstergeler (UT Bot, Trendlines, TRAMA, S/R kırılımı) 1–5 dk'da yazı-turadan belirgin şekilde kötü (%42–46): sinyal hareket bittikten sonra geliyor.
+
+---
+
+# 9. Kullanıcının dokunuş sayısı okuması
+
+Kullanıcının grafik çizimlerinden çıkarılan iki kural `binary/touches.py`'de sonuca bakmadan sabitlendi: **R3** — destek/dirence 3. dokunuşta dönüş; **R5** — 5+ dokunuşta kırılım. Seviyeler son 60 mumun pivotlarından, dokunuş toleransı ortalama 1 dk hareketin yarısı.
+
+| Kural | Yahoo (30 gün, 11 parite) | Pocket (gerçek ödemeler) |
+|---|---|---|
+| R3 3. dokunuşta dönüş | %49,6 – %51,4 (5–15 bin işlem) | %48,7 – %56,4 (118–382 işlem; başa baş ~%58,5) |
+| R5 5+ dokunuşta kırılım | %45,6 – %51,5 (800–2.700 işlem) | 16–40 işlem, değerlendirilemez |
+
+12 + 12 testin hiçbiri Bonferroni eşiğini geçmedi. R5 1–5 dk'da yazı-turadan kötü (%45–48): çok test edilen seviye kısa vadede çoğu zaman tutuyor; ama tersi de (%52–54) gerçekçi ödemelerle başa başın altında.
+
+---
+
+# 10. Kullanıcının gözle okuma testi (ilk 30 grafik)
+
+"Yön Okuma Testi" sayfasında rastgele seçilmiş 250 gerçek 1 dk grafik (7 parite, 30 gün); kullanıcı çizim yapıp 5 dk vadeli CALL/PUT/işlem yok kararı veriyor.
+
+| | Sonuç |
+|---|---|
+| Cevaplanan | 30 (27 işlem, 3 işlem yok) |
+| İsabet | **16/27 = %59,3** — %95 güven aralığı %41–%75, p = 0,36 (başa baş %54'e göre) |
+| Önceki oyunlarla toplam | 40 işlemde 24 doğru (%60), p ≈ 0,27 |
+| Yön dağılımı | 21 CALL / 6 PUT (gerçekte 15/15) — belirgin CALL eğilimi |
+| İşlem yok | Ortalama hareket 1,4 pip (işlem alınanlarda 2,9 pip) — sakin piyasayı seçerek atlıyor |
+| Mühürlü kural (karşılaştırma) | Aynı 27 grafikte 18/27; ama 12.735 rastgele anda %50,2 — küçük örneklemde şans |
+
+**Sonuç:** Henüz belirsiz. %59 başa başın üstünde, ama 27 işlemde yazı-turadan ayırt edilemiyor. Karar için ~200 işlem gerekiyor.
+
+---
+
+# 11. "Teyitli kırılım" — otomatik versiyon
+
+Kullanıcının testte 4/4 tutan "fiyat çizgiyi geçmiş ve ötesinde duruyor" okuması, sonuçlara bakılmadan `binary/breakout_confirm.py`'de sabitlendi: son 60 mumdan yatay (en az 2 dokunuşlu) veya trend (son iki pivot) çizgi; kapanış çizgiyi geçer ve sonraki 1–2 mum da ötesinde kapanırsa kırılım yönünde işlem.
+
+| Veri | 24 varyantın isabeti | Başa baş |
+|---|---|---|
+| Yahoo, 30 gün, 11 parite (5–21 bin işlem/varyant) | %47,4 – %50,7 | %54,05 |
+| Pocket'ın kendi fiyatları, gerçek ödemeler (118–559 işlem) | %37 – %54,5 | ~%58,5 |
+
+Hiçbiri Bonferroni eşiğini geçmedi. En iyi varyantla (trend, 2 mum teyit, 5 dk, gerçekçi giriş) 1.000 $ / 10 $ işlem simülasyonu: %50,7 isabetle hesap %85 ödemede 962 işlemde (~1,2 gün), %75 ödemede 614 işlemde (~0,8 gün) sıfırlandı.
+
+Not: Otomatik çizgiler kullanıcının çizdiği çizgilerle birebir aynı değil; kullanıcının gözle seçtiği "teyitli kırılım"lar (4/4) bu kuralın yakalayamadığı bir şey içeriyor olabilir. Bu ancak kullanıcının kendi işaretlediği daha fazla örnekle sınanabilir.
