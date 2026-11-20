@@ -1,7 +1,7 @@
 Ön kayıtlı adayların ileri doğrulaması (yalnızca kayıt tarihinden sonraki veri)
 
-cross_ml_30m_p60  kayıt 2026-11-18  veri 2026-11-19 11:45 UTC'ye kadar  →  BEKLİYOR (52.0/300 işlem)
-  ödeme %85: 52.0 işlem, isabet %55.77, başa baş %54.05, işlem başı %3.17, p=0.4566
-  ödeme %75: 52.0 işlem, isabet %55.77, başa baş %57.14, işlem başı %-2.4, p=0.6332
+cross_ml_30m_p60  kayıt 2026-11-18  veri 2026-11-20 11:45 UTC'ye kadar  →  BEKLİYOR (133.0/300 işlem)
+  ödeme %85: 133.0 işlem, isabet %51.13, başa baş %54.05, işlem başı %-5.41, p=0.7776
+  ödeme %75: 133.0 işlem, isabet %51.13, başa baş %57.14, işlem başı %-10.53, p=0.9318
 
 Geçme kuralı: en az 300 işlem ve %85 ödemede p < 0.01. Geçse bile önce demo hesapta doğrulanmalı; %75 ödemede de kâr gerekir.
