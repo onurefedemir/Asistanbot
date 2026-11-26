@@ -1,25 +1,25 @@
-Veri: 350,863 dakika, 10 çift
-Eğitim: 2026-10-20 09:52 → 2026-11-13 16:19
-Test:   2026-11-13 16:19 → 2026-11-25 13:00
+Veri: 364,353 dakika, 10 çift
+Eğitim: 2026-10-20 09:52 → 2026-11-16 10:40
+Test:   2026-11-16 10:40 → 2026-11-26 12:41
 Ödeme %85 → başa baş kazanma oranı %54.05
 Giriş gecikmesi: 0 mum, vadeler: 1, 2, 3, 5 dk
 Denenen kombinasyon: 1056
 
 strateji            parametre                    vade      seans |          eğitim |            test       p  geçti
-zscore_reversion    n=10,z=2.5                     5d       asya | %66.57 n=335    | % 68.1 n=163     0.0002  EVET
-zscore_reversion    n=10,z=2.5                     3d       asya | %65.47 n=333    | %69.28 n=166     0.0001  EVET
-zscore_reversion    n=10,z=2.5                     2d       asya | %65.05 n=329    | %68.52 n=162     0.0001  EVET
-zscore_reversion    n=10,z=2.5                     2d        all | %64.54 n=1114   | % 66.6 n=473        0.0  EVET
-zscore_reversion    n=10,z=2.5                     3d        all | %64.18 n=1100   | %63.73 n=477        0.0  EVET
-zscore_reversion    n=10,z=2.5                     1d        all | % 63.6 n=1107   | % 66.1 n=472        0.0  EVET
-zscore_reversion    n=10,z=2.5                     5d        all | %63.49 n=1101   | %62.53 n=475     0.0001  EVET
-zscore_reversion    n=10,z=2.5                     1d       asya | %62.07 n=319    | %67.68 n=164     0.0003  EVET
-zscore_reversion    n=50,z=3.0                     2d     londra | %61.75 n=332    | %54.79 n=188     0.4489  hayır
-zscore_reversion    n=50,z=3.0                     2d       asya | %61.74 n=575    | %59.79 n=194     0.0627  hayır
-zscore_reversion    n=20,z=3.0                     5d        all | %61.09 n=920    | %55.16 n=368      0.354  hayır
-zscore_reversion    n=50,z=3.0                     1d       asya | %60.92 n=760    | %61.26 n=253     0.0126  hayır
-zscore_reversion    n=20,z=3.0                     3d        all | %60.25 n=956    | %58.05 n=379     0.0657  hayır
-roc_reversion       n=1,z=3.0                      1d        all | %60.02 n=2459   | %57.27 n=1018    0.0213  hayır
-zscore_reversion    n=50,z=3.0                     2d        all | %59.88 n=1929   | %57.29 n=803     0.0358  hayır
+zscore_reversion    n=10,z=2.5                     5d       asya | %67.03 n=364    | %66.03 n=156     0.0017  EVET
+zscore_reversion    n=10,z=2.5                     3d       asya | %65.19 n=362    | %71.15 n=156        0.0  EVET
+zscore_reversion    n=10,z=2.5                     2d       asya | %64.62 n=359    | %72.85 n=151        0.0  EVET
+zscore_reversion    n=10,z=2.5                     2d        all | % 64.3 n=1171   | %68.35 n=474        0.0  EVET
+zscore_reversion    n=10,z=2.5                     3d        all | %64.04 n=1154   | %64.72 n=479        0.0  EVET
+zscore_reversion    n=10,z=2.5                     1d        all | %63.83 n=1164   | %65.54 n=473        0.0  EVET
+zscore_reversion    n=10,z=2.5                     5d        all | %63.81 n=1155   | %61.51 n=478     0.0006  EVET
+zscore_reversion    n=10,z=2.5                     1d       asya | %62.39 n=351    | %68.18 n=154     0.0003  EVET
+zscore_reversion    n=50,z=3.0                     2d     londra | %61.85 n=346    | %52.38 n=189     0.7035  hayır
+zscore_reversion    n=50,z=3.0                     2d       asya | %61.59 n=591    | % 60.0 n=210     0.0485  hayır
+zscore_reversion    n=50,z=3.0                     1d       asya | %61.36 n=779    | %61.82 n=275     0.0058  hayır
+zscore_reversion    n=20,z=3.0                     5d        all | %60.83 n=960    | %55.67 n=379     0.2807  hayır
+zscore_reversion    n=50,z=3.0                     5d       asya | %60.47 n=468    | %67.78 n=180     0.0001  EVET
+zscore_reversion    n=20,z=3.0                     2d        all | %59.92 n=1023   | %60.91 n=394     0.0037  hayır
+zscore_reversion    n=20,z=3.0                     3d        all | %59.88 n=997    | %60.31 n=388     0.0077  hayır
 
-Testi geçen strateji: 8 / 15 (eşik p < 0.0033)
+Testi geçen strateji: 9 / 15 (eşik p < 0.0033)
