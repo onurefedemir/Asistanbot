@@ -1,25 +1,25 @@
-Veri: 364,353 dakika, 10 çift
-Eğitim: 2026-10-20 09:52 → 2026-11-16 10:40
-Test:   2026-11-16 10:40 → 2026-11-26 12:41
+Veri: 377,889 dakika, 10 çift
+Eğitim: 2026-10-20 09:52 → 2026-11-17 03:19
+Test:   2026-11-17 03:19 → 2026-11-27 12:28
 Ödeme %85 → başa baş kazanma oranı %54.05
 Giriş gecikmesi: 1 mum, vadeler: 1, 2, 3, 5 dk
 Denenen kombinasyon: 1056
 
 strateji            parametre                    vade      seans |          eğitim |            test       p  geçti
-streak_momentum     m=6                            5d       asya | %56.28 n=565    | %51.02 n=245     0.8454  hayır
-roc_reversion       n=1,z=3.0                      5d     londra | %55.15 n=379    | %51.28 n=195     0.8019  hayır
-zscore_reversion    n=50,z=3.0                     1d     londra | %55.03 n=338    | %50.85 n=177     0.8242  hayır
-roc_reversion       n=1,z=3.0                      3d     londra | %54.77 n=398    | %53.81 n=197     0.5561  hayır
-streak_momentum     m=7                            1d       asya | %54.75 n=316    | %51.03 n=145     0.7919  hayır
-zscore_reversion    n=20,z=2.5                     3d     londra | %54.53 n=838    | %52.93 n=376     0.6882  hayır
-rsi_reversion       n=5,lo=10,hi=90                1d ny_overlap | %54.21 n=653    | %56.62 n=272     0.2155  hayır
-zscore_reversion    n=20,z=3.0                     1d        all | %54.15 n=977    | %51.77 n=367     0.8238  hayır
-roc_reversion       n=15,z=3.0                     5d        all | % 54.1 n=451    | %58.86 n=175     0.1152  hayır
-roc_reversion       n=5,z=2.0                      2d     londra | %53.82 n=1243   | %52.55 n=607     0.7831  hayır
-roc_reversion       n=5,z=2.0                      1d     londra | %53.76 n=1451   | %50.07 n=691     0.9838  hayır
-streak_momentum     m=6                            2d     londra | %53.63 n=509    | %51.02 n=245     0.8454  hayır
-roc_reversion       n=3,z=2.0                      2d ny_overlap | %53.54 n=1526   | %52.62 n=745     0.7949  hayır
-rsi_reversion       n=14,lo=30,hi=70               3d     londra | % 53.5 n=1587   | %50.07 n=691     0.9838  hayır
-rsi_reversion       n=5,lo=10,hi=90                3d     londra | %53.15 n=604    | %51.78 n=253      0.785  hayır
+streak_momentum     m=6                            5d       asya | % 56.3 n=579    | %50.57 n=261      0.883  hayır
+roc_reversion       n=1,z=3.0                      5d     londra | %55.26 n=380    | %48.85 n=217      0.946  hayır
+zscore_reversion    n=50,z=3.0                     1d     londra | %55.03 n=338    | %48.51 n=202     0.9506  hayır
+roc_reversion       n=1,z=3.0                      3d     londra | %54.89 n=399    | %51.39 n=216     0.8035  hayır
+rsi_reversion       n=5,lo=10,hi=90                1d ny_overlap | % 54.5 n=666    | %55.89 n=297     0.2818  hayır
+zscore_reversion    n=20,z=2.5                     3d     londra | %54.26 n=846    | %52.93 n=410     0.6941  hayır
+zscore_reversion    n=20,z=3.0                     1d        all | % 54.2 n=1011   | %50.54 n=372     0.9212  hayır
+streak_momentum     m=7                            1d       asya | %54.18 n=323    | %53.25 n=154      0.611  hayır
+streak_momentum     m=6                            2d     londra | %54.07 n=516    | %50.57 n=263     0.8841  hayır
+roc_reversion       n=15,z=3.0                     5d        all | %53.98 n=465    | %59.41 n=170     0.0926  hayır
+roc_reversion       n=5,z=2.0                      1d     londra | %53.77 n=1458   | %49.49 n=782     0.9953  hayır
+roc_reversion       n=5,z=2.0                      2d     londra | %53.64 n=1249   | %51.76 n=682     0.8927  hayır
+roc_reversion       n=3,z=2.0                      2d ny_overlap | %53.62 n=1617   | %51.97 n=710     0.8751  hayır
+rsi_reversion       n=14,lo=30,hi=70               3d     londra | %53.52 n=1605   | %50.47 n=743     0.9771  hayır
+zscore_reversion    n=10,z=2.5                     3d       asya | %53.41 n=367    | %55.35 n=159     0.4023  hayır
 
 Testi geçen strateji: 0 / 15 (eşik p < 0.0033)
