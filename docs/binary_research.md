@@ -399,3 +399,16 @@ olduğunu kabul etti. Kâr/zarar hesabı bu bölümde bilerek yapılmadı.
 (O=H=L=C; EURUSD'de kapanışların yarısı değişmiyor). Mum şekline bakan testlerde (fitil, doji,
 kırılım, grafik okuma) bu üç parite dışarıda bırakıldı; kapanışa dayalı eski testlerde bu
 paritelerin verisinin kaba olduğu akılda tutulmalı.
+
+## 16. Çok büyük 1 dakikalık mumlar (sıçramalar)
+
+`binary/spikes.py`: 1 dk kapanış hareketi, paritenin son 24 saatteki tipik hareketinin ≥ 10 katıysa
+sıçrama sayılır. Günlük GitHub görevi bunları `data` dalında `spikes.csv` (birikimli) ve
+`spikes.txt` (özet) olarak kaydeder.
+
+21 Ekim – 27 Kasım (7 parite, EURUSD/GBPUSD/AUDUSD hariç): 895 sıçrama. GBPJPY, EURGBP, AUDCAD,
+EURJPY ve USDCHF neredeyse her gün sıçrama atıyor. Sıçramaların %66'sı TSİ 00:00–02:00 arasında
+(gün dönümü, düşük likidite/geniş fark); ikinci yoğunluk TSİ 16:30 (ABD verileri). Gece
+sıçramalarının %67'si 5 dk içinde geri dönüyor; haber sıçramalarında yön yazı-tura (%52 geri).
+Bu Yahoo verisi; Pocket Option'ın gece saatlerinde işlem açtırıp açtırmadığı ve aynı sıçramaları
+gösterip göstermediği henüz bilinmiyor.
