@@ -5,6 +5,7 @@
 #   research_delay0.txt    gecikmesiz giriş (iyimser) strateji testi
 #   ml_report.txt          günlük yeniden eğitilen ML modelinin kayan pencereli testi
 #   forward_validation.txt ön kayıtlı adayların yalnızca kayıt sonrası veride testi (binary/candidates.json)
+#   spikes.csv / spikes.txt çok büyük 1 dk mumların (sıçramaların) birikimli kaydı ve özeti
 #   review.md              Claude'un Türkçe günlük değerlendirmesi (ANTHROPIC_API_KEY secret'ı gerekir)
 # Elle çalıştırmak için: GitHub → Actions → "Veri topla" → Run workflow
 name: Veri topla
@@ -41,6 +42,7 @@ jobs:
           if git rev-parse --verify -q origin/data >/dev/null; then
             git archive origin/data candles | tar -x
             git show origin/data:review.md > review.md 2>/dev/null || rm -f review.md
+            git show origin/data:spikes.csv > spikes.csv 2>/dev/null || rm -f spikes.csv
             ls -la candles
           else
             echo "data dalı yok, sıfırdan başlanıyor"
@@ -55,6 +57,7 @@ jobs:
           python -m binary.research --delay 0 > research_delay0.txt
           python -m binary.ml evaluate > ml_report.txt
           python -m binary.registry > forward_validation.txt
+          python -m binary.spikes --candles candles --out spikes.csv --report > spikes.txt
           cat research_delay1.txt ml_report.txt forward_validation.txt
 
       - name: Claude değerlendirmesi
@@ -67,7 +70,7 @@ jobs:
         run: |
           OUT="$RUNNER_TEMP/out"
           mkdir -p "$OUT"
-          mv candles research_delay1.txt research_delay0.txt ml_report.txt forward_validation.txt "$OUT/"
+          mv candles research_delay1.txt research_delay0.txt ml_report.txt forward_validation.txt spikes.csv spikes.txt "$OUT/"
           if [ -f review.md ]; then mv review.md "$OUT/"; fi
           rm -f binary.db
           git config user.name "github-actions[bot]"
@@ -79,7 +82,7 @@ jobs:
             git rm -rfq .
           fi
           cp -r "$OUT"/* .
-          git add -f candles research_delay1.txt research_delay0.txt ml_report.txt forward_validation.txt
+          git add -f candles research_delay1.txt research_delay0.txt ml_report.txt forward_validation.txt spikes.csv spikes.txt
           if [ -f review.md ]; then git add -f review.md; fi
           git commit -qm "Veri: $(date -u +%F)" || { echo "Değişiklik yok"; exit 0; }
           git push origin data

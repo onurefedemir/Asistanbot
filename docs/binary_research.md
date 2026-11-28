@@ -212,3 +212,240 @@ Tüm turlar 15/30 dk vadeyle yeniden çalıştırıldı (Yahoo, 30 gün, 10 pari
 - %75 ödemede (Pocket medyanı) başa baş %57,14; keşif sonucu bile bu eşiğin altında.
 
 Aday `cross_ml_30m_p60` olarak 18 Kasım'da kaydedildi. Günde ~45 işlem ürettiği için 300 işleme ~7 iş gününde ulaşır; o zamana kadar durum **BEKLİYOR**.
+
+---
+
+# 7. TradingView "UT Bot Alerts" testi
+
+Kullanıcının kullandığı ayarlar: Key Value 1, ATR Period 10, Heikin Ashi kapalı, 1 dk grafik (AUDCHF). Gösterge `binary/utbot.py`'de Pine Script mantığıyla birebir yazıldı ve kullanıcının 18 Kasım 12:00–12:36 (UTC+2) AUDCHF ekran görüntüsündeki sinyaller (Buy ~12:13, Sell ~12:18, Buy ~12:23) 1–2 dk farkla yeniden üretildi (fark veri kaynağından).
+
+| Veri | Vade | Gecikmesiz giriş | 1 mum gecikmeli | Başa baş |
+|---|---|---|---|---|
+| Yahoo, 30 gün, 11 parite (%85 ödeme) | 1 dk | **%44,4** (68.699 işlem) | %49,8 | %54,05 |
+| | 5 dk | %45,4 | %49,7 | |
+| | 15 dk | %47,1 | %50,0 | |
+| | 30 dk | %48,2 | %49,7 | |
+| Pocket'ın kendi fiyatları, gerçek ödemeler | 1 dk | %47,9 (1.719) | %48,3 | ~%58,6 |
+| | 5 dk | %49,2 | %51,6 | |
+| | 15 dk | %54,0 (378) | %55,4 (352) | |
+
+Diğer popüler ayarlar (Key 2/ATR 1, Key 3/ATR 10, Key 2/ATR 300) ve gerçek high/low ile ATR: hepsi %42–48. **12 testin hiçbiri başa başa yaklaşmadı; kısa vadede yazı-turadan da kötü.**
+
+Neden? UT Bot bir trend takip göstergesi: sinyal, fiyat zaten bir yöne hareket ettikten sonra gelir. 1–5 dk ölçeğinde fiyat kısa hareketlerden sonra hafifçe geri dönme eğiliminde olduğu için giriş çoğu zaman yerel uçta yapılır.
+
+"Tersini yapmak" da çözüm değil: Yahoo'da gecikmesiz tersi %55,6 görünür ama bu, 1. turda görülen veri gürültüsüdür (1 mum gecikmeyle ~%50). Pocket'ta tersi %52,1 olur; gerçek ödemelerle başa baş %58,6.
+
+**"10'da 8" iddiası:** 68.699 işlemde %44,4. 10 işlemlik bir pencerede 8 doğru, bu sistemde de şans eseri sık sık görülür; uzun vadede sonuç zarar.
+
+---
+
+# 8. Kullanıcının TradingView favorileri
+
+Göstergeler açık kaynak mantıklarıyla, varsayılan ayarlarla `binary/tv_indicators.py`'de yeniden yazıldı (kaynak kodlarıyla satır satır karşılaştırılamadı; TradingView'e bu ortamdan erişim yok). JCFBaux Volatility yön üretmediği için diğerlerine yüksek/düşük oynaklık filtresi olarak eklendi.
+
+**Yahoo, 30 gün, 11 parite, %85 ödeme (başa baş %54,05) — isabet aralığı:**
+
+| Gösterge | Gecikmesiz (1/5/15/30 dk) | 1 mum gecikmeli |
+|---|---|---|
+| UT Bot (QuantNomad) | %44,4 – %48,3 | %49,7 – %50,1 |
+| Trendlines with Breaks (LuxAlgo) | %43,5 – %47,3 | %49,2 – %50,9 |
+| TRAMA (LuxAlgo) | %43,2 – %50,2 | %49,7 – %51,0 |
+| Gaussian N-Pole (Loxx) | %48,4 – %50,5 | %50,1 – %51,0 |
+| RSI Divergence (Libertus) | %49,0 – %50,5 | %48,7 – %50,8 |
+| RSI Gizli Divergence | %47,6 – %50,5 | %48,0 – %52,4 |
+| S/R Channels (LonesomeTheBlue) | %42,4 – %48,1 | %49,0 – %50,9 |
+
+Oynaklık filtresiyle en iyisi: RSI Divergence + yüksek oynaklık, 30 dk: %54,98 (1.597 işlem, p = 0,24).
+
+**Pocket'ın kendi fiyatları, gerçek ödemeler (başa baş ~%58,6):** hepsi %27–59, yüksek isabetliler çok az işlemli (örn. RSI Divergence 30 dk %58,6, 58 işlem).
+
+**Sonuç:** İki veri setinde 336 testin hiçbiri Bonferroni eşiğini geçmedi. Trend takip eden göstergeler (UT Bot, Trendlines, TRAMA, S/R kırılımı) 1–5 dk'da yazı-turadan belirgin şekilde kötü (%42–46): sinyal hareket bittikten sonra geliyor.
+
+---
+
+# 9. Kullanıcının dokunuş sayısı okuması
+
+Kullanıcının grafik çizimlerinden çıkarılan iki kural `binary/touches.py`'de sonuca bakmadan sabitlendi: **R3** — destek/dirence 3. dokunuşta dönüş; **R5** — 5+ dokunuşta kırılım. Seviyeler son 60 mumun pivotlarından, dokunuş toleransı ortalama 1 dk hareketin yarısı.
+
+| Kural | Yahoo (30 gün, 11 parite) | Pocket (gerçek ödemeler) |
+|---|---|---|
+| R3 3. dokunuşta dönüş | %49,6 – %51,4 (5–15 bin işlem) | %48,7 – %56,4 (118–382 işlem; başa baş ~%58,5) |
+| R5 5+ dokunuşta kırılım | %45,6 – %51,5 (800–2.700 işlem) | 16–40 işlem, değerlendirilemez |
+
+12 + 12 testin hiçbiri Bonferroni eşiğini geçmedi. R5 1–5 dk'da yazı-turadan kötü (%45–48): çok test edilen seviye kısa vadede çoğu zaman tutuyor; ama tersi de (%52–54) gerçekçi ödemelerle başa başın altında.
+
+---
+
+# 10. Kullanıcının gözle okuma testi (ilk 30 grafik)
+
+"Yön Okuma Testi" sayfasında rastgele seçilmiş 250 gerçek 1 dk grafik (7 parite, 30 gün); kullanıcı çizim yapıp 5 dk vadeli CALL/PUT/işlem yok kararı veriyor.
+
+| | Sonuç |
+|---|---|
+| Cevaplanan | 30 (27 işlem, 3 işlem yok) |
+| İsabet | **16/27 = %59,3** — %95 güven aralığı %41–%75, p = 0,36 (başa baş %54'e göre) |
+| Önceki oyunlarla toplam | 40 işlemde 24 doğru (%60), p ≈ 0,27 |
+| Yön dağılımı | 21 CALL / 6 PUT (gerçekte 15/15) — belirgin CALL eğilimi |
+| İşlem yok | Ortalama hareket 1,4 pip (işlem alınanlarda 2,9 pip) — sakin piyasayı seçerek atlıyor |
+| Mühürlü kural (karşılaştırma) | Aynı 27 grafikte 18/27; ama 12.735 rastgele anda %50,2 — küçük örneklemde şans |
+
+**Sonuç:** Henüz belirsiz. %59 başa başın üstünde, ama 27 işlemde yazı-turadan ayırt edilemiyor. Karar için ~200 işlem gerekiyor.
+
+---
+
+# 11. "Teyitli kırılım" — otomatik versiyon
+
+Kullanıcının testte 4/4 tutan "fiyat çizgiyi geçmiş ve ötesinde duruyor" okuması, sonuçlara bakılmadan `binary/breakout_confirm.py`'de sabitlendi: son 60 mumdan yatay (en az 2 dokunuşlu) veya trend (son iki pivot) çizgi; kapanış çizgiyi geçer ve sonraki 1–2 mum da ötesinde kapanırsa kırılım yönünde işlem.
+
+| Veri | 24 varyantın isabeti | Başa baş |
+|---|---|---|
+| Yahoo, 30 gün, 11 parite (5–21 bin işlem/varyant) | %47,4 – %50,7 | %54,05 |
+| Pocket'ın kendi fiyatları, gerçek ödemeler (118–559 işlem) | %37 – %54,5 | ~%58,5 |
+
+Hiçbiri Bonferroni eşiğini geçmedi. En iyi varyantla (trend, 2 mum teyit, 5 dk, gerçekçi giriş) 1.000 $ / 10 $ işlem simülasyonu: %50,7 isabetle hesap %85 ödemede 962 işlemde (~1,2 gün), %75 ödemede 614 işlemde (~0,8 gün) sıfırlandı.
+
+Not: Otomatik çizgiler kullanıcının çizdiği çizgilerle birebir aynı değil; kullanıcının gözle seçtiği "teyitli kırılım"lar (4/4) bu kuralın yakalayamadığı bir şey içeriyor olabilir. Bu ancak kullanıcının kendi işaretlediği daha fazla örnekle sınanabilir.
+
+## 12. Kullanıcının kazandığı işlemlerden çıkarılan trend kuralı (28 Kasım 2026)
+
+Yön Okuma Testi'nde 30 grafik: 27 işlem, 16 doğru (%59,3; %85 ödemede başa baş %54,05,
+şansla bu kadar ya da daha iyi sonuç olasılığı p = 0,37 — örnek henüz çok küçük).
+Kazançların 12/16'sında karar son 20 dakikanın yönüyle aynıydı, kayıplarda 5/11:
+trend yönünde açılan işlemler 12/17, trende karşı açılanlar 4/10.
+
+Bu gözlemden üç kural sonuçlara bakılmadan sabitlendi (`binary/user_trend.py`):
+T1 trend yönünde (20 dk getirisi ≥ 3 × ortalama 1 dk hareket ve EMA10/EMA30 aynı yönde),
+T2 = T1 + son 5 dk geri çekilme, T3 = T1 + fiyat 30 dk aralığının trend tarafında.
+
+Sonuç (10 parite, 377.889 dakika, %85 ödeme, 12 test):
+
+| Kural | Gecikme 1, vade 5 dk | Gecikme 1, vade 15 dk |
+|---|---|---|
+| T1 trend yönünde | 39.170 işlem, %49,98 | 17.915 işlem, %49,85 |
+| T2 + geri çekilme | 16.908 işlem, %49,08 | 11.178 işlem, %49,31 |
+| T3 + aralığın trend tarafı | 37.992 işlem, %49,98 | 17.666 işlem, %49,96 |
+
+Hiçbiri başa başa yaklaşmadı (hepsi p = 1,0; gecikme 0'da da %47,9–50,5). Aynı kural testteki
+250 grafikte 147 işlemde %44,9; kullanıcının cevapladığı grafiklerde 17 işlemde 8 doğru.
+Yani kullanıcının kazancını açıklayan şey "trend yönünde girmek" değil: mekanik trend kuralı
+kullanıcının seçtiği grafiklerde bile %47'de kalıyor. Kullanıcının gözle yaptığı seçimde
+başka bir şey olabilir; bunu ayırt etmek için ~200 cevap gerekir (o zaman %59 sürerse p ≈ 0,07).
+
+## 13. Yalnızca "emin olunan" işlemler (hedef: 100 işlemde 80 doğru)
+
+Fikir: model çok emin değilse işleme girme. `binary/confident.py`: 1–60 dk getiriler, aralık
+konumu, EMA farkı, oynaklık, mum gövdesi, saat ve paritelerle gradyan artırmalı model; yalnızca
+olasılık ≥ %74 ya da ≤ %26 iken, 1 dk gecikmeli giriş, 5 dk vade, aynı paritede örtüşme yok.
+
+- Tek bölmede (Ekim → 10–27 Kasım) en emin 100 tahmin %61–63 tuttu. Aynı yöntem farklı bölme
+  tarihleriyle: %53, %58, %46; ters yönde %60. Yani tek bölmedeki sonuç şanstı.
+- Gerçekçi sınama (her gün yalnızca önceki 30 günle yeniden eğitim, 23 gün): **376 işlem,
+  %50,3** (başa baş %54,05, p = 0,94). Güven eşiği yükseltmek isabeti artırmıyor; modelin
+  "eminim" dediği yerler de yazı-tura.
+- Örnek: "tutana kadar dene" yapılırsa Ekim'de %70+ görünen 20 kural Kasım'da %52'ye düştü.
+
+Sonuç: elimizdeki veriyle 1–15 dk yönde %80'e, hatta kârlı %54'e ulaşan bir seçicilik yok.
+Aday ileri doğrulamaya alınmadı (geçmişte zaten kaldı).
+
+## 14. RSI + MACD kayıplarına kullanıcının düzeltmeleri
+
+Temel kural (RSI 30/70 + MACD kesişimi, 1 mum sonra giriş, 5 dk): Ekim–20 Kasım 2.273 işlem %50,5;
+ayrılmış hafta (21–27 Kasım) 408 işlem %53,4. Rastgele 8 kayıp grafiği kullanıcıya gösterildi;
+kullanıcının yorumları kurala çevrildi, sonuca bakmadan sabitlendi (`binary/rsi_macd.py`):
+
+| Düzeltme | Ekim–20 Kasım | Ayrılmış hafta |
+|---|---|---|
+| Kesişim mumunda gir (gecikme 0) | 2.282 işlem, %48,9 | 410 işlem, %53,9 |
+| F2a doji + RSI trend tarafında → girme | 1.637, %50,8 | 288, %53,5 |
+| F2b aynı durumda ters yöne gir | 2.273, %50,9 | 408, %51,7 |
+| F3a mum kırılımı şart | 688, %48,8 | 104, %58,7 |
+| F3b ters trendde kırılım şart | 753, %49,5 | 120, %55,8 |
+| F3c F3b + MACD düzeltmesi ufak değil | 133, %54,1 | 25, %56,0 |
+
+Hiçbiri iki dönemde birden başa başı anlamlı şekilde geçmedi. F3a ayrılmış haftada %58,7 ama
+eğitim döneminde %48,8 (tutarsız); F3c başa başta ama işlem sayısı az. F2a, F3a, F3c 28 Kasım
+sonrası yeni veride izleniyor: `python -m binary.rsi_macd --since 2026-11-29`.
+
+## 15. Kullanıcının grafik okumasının kurala dökülmesi (kâr/zarar değil, okuma)
+
+Amaç: kullanıcının MACD kesişimlerinde nereye ve hangi yönde girdiğini kurala çevirmek.
+Araç: RSI MACD Çizim Masası (fiyat, RSI, MACD panelleri; çizim, karar ve giriş mumu seçimi).
+
+- **1. set (20 grafik, sonuç görünür):** kullanıcı 17 grafikte girdi, 3'ünde girmedi; girişlerin
+  9'u MACD yönünde, 8'i MACD'nin tersine. Notlardaki ana ölçüt RSI'nin 50 çizgisi.
+  Eski kural (doji/kırılım/onay mumu) 20 kararın yalnızca 4'üyle aynıydı.
+- **Kural v2** (RSI 45–55'te bir mum bekle, 50'den sekerse MACD'nin tersine): 1. sette 14/20 uyum
+  (aynı veride kurulduğu için iyimser). Kararları önceden mühürlendi; **2. sette (sonuç gizli)
+  uyum 7/20** — genellenmedi.
+- 2. set notlarından: "RSI 50'yi geçtiyse MACD yönünde", "geçemediyse tersine", emin değilse bir
+  mum bekleme; kullanıcı ayrıca destek çizgisine değip alt fitil bırakan mumda CALL giriyor.
+  Girişlerin 15/17'si CALL (yön eğilimi). Kullanıcı RSI 50'yi kesin değil "sınır bölgesi" olarak görüyor.
+- **Kural v3** (`binary/user_reading.py`): destek/dirençten fitilli dönüş + RSI 45–55 sınır bölgesi.
+
+Kural v3, sinyal mumunun kapanışında giriş, doğru yön oranı (Ekim–27 Kasım, 7 parite, 1.989 sinyal):
+
+| Girişten sonra | 20 rastgele yeni grafik | Tüm veri |
+|---|---|---|
+| 1 mum | 10/20 | %48,1 |
+| 3 mum | 10/20 | %50,0 |
+| 5 mum | 11/20 | %49,0 |
+
+Parçalar (3 mum): RSI 50 sınırında geçemedi → ters %52,0 (325); RSI 50'den uzak → %49,9 (1.289);
+RSI 50'yi geçti → %50,0 (154); dirençten üst fitil → %49,5 (93); destekten alt fitil → %42,4 (66).
+Hiçbiri yazı-turadan anlamlı şekilde ayrılmıyor. Kullanıcı da bu okumanın "taktik değil yazı tura"
+olduğunu kabul etti. Kâr/zarar hesabı bu bölümde bilerek yapılmadı.
+
+**Veri notu:** Yahoo, EURUSD, GBPUSD ve AUDUSD için yalnızca dakika kapanışını veriyor
+(O=H=L=C; EURUSD'de kapanışların yarısı değişmiyor). Mum şekline bakan testlerde (fitil, doji,
+kırılım, grafik okuma) bu üç parite dışarıda bırakıldı; kapanışa dayalı eski testlerde bu
+paritelerin verisinin kaba olduğu akılda tutulmalı.
+
+## 16. Çok büyük 1 dakikalık mumlar (sıçramalar)
+
+`binary/spikes.py`: 1 dk kapanış hareketi, paritenin son 24 saatteki tipik hareketinin ≥ 10 katıysa
+sıçrama sayılır. Günlük GitHub görevi bunları `data` dalında `spikes.csv` (birikimli) ve
+`spikes.txt` (özet) olarak kaydeder.
+
+21 Ekim – 27 Kasım (7 parite, EURUSD/GBPUSD/AUDUSD hariç): 895 sıçrama. GBPJPY, EURGBP, AUDCAD,
+EURJPY ve USDCHF neredeyse her gün sıçrama atıyor. Sıçramaların %66'sı TSİ 00:00–02:00 arasında
+(gün dönümü, düşük likidite/geniş fark); ikinci yoğunluk TSİ 16:30 (ABD verileri). Gece
+sıçramalarının %67'si 5 dk içinde geri dönüyor; haber sıçramalarında yön yazı-tura (%52 geri).
+Bu Yahoo verisi; Pocket Option'ın gece saatlerinde işlem açtırıp açtırmadığı ve aynı sıçramaları
+gösterip göstermediği henüz bilinmiyor.
+
+### 16a. Sıçramaların sebebi (haber mi?)
+
+- **Gece sıçramaları haber değil, gün dönümü:** Ekim'de en sık TSİ 00:00, 1 Kasım'dan (ABD kış
+  saati) sonra TSİ 01:00. İkisi de New York 17:00 = forex gün kapanışı (rollover): likidite çekilir,
+  alış-satış farkı açılır, fiyat kısa süre zıplayıp geri döner.
+- **Gündüz sıçramaları haber:** TSİ 16:30 = ABD verileri (ET 08:30; 6 Kasım tarım dışı istihdam,
+  USDCAD 39 pip — Kanada istihdamı da aynı dakika); TSİ 03:30 = Avustralya verileri (19 Kasım
+  istihdam, AUDCAD −44 pip "Aussie falls after soft jobs data"; 25 Kasım TÜFE, +34 pip "Aussie
+  jumps on CPI"); 3 Kasım TSİ 06:30 = RBA faiz kararı (AUDCAD −22 pip).
+- **Veri hataları:** 20 Kasım TSİ 02:59'daki USDJPY −123 pip / EURJPY −129 pip "sıçrama" haber
+  değil; tek dakikalık hatalı fiyat (bir dakika sonra eski yerinde). `binary/spikes.py` bu tür tek
+  dakikalık geri dönüşleri `veri_hatasi_olasi` olarak işaretliyor (972 kayıttan 121'i).
+
+### 16b. Büyük mumlarda Pocket ödeme oranları
+
+Kaynak: kullanıcının 16 Kasım Pocket kaydı (TSİ 12:36–19:36, tek gün; gece verisi yok).
+Pocket ödemesi gün içinde parite ve saate göre %20–92 arasında değişiyor (medyan %75; saatlik
+medyan 12:00'de %84, 15:00'te %69).
+
+| Parite | Saat (TSİ) | O dakika ödeme | Paritenin gün medyanı |
+|---|---|---|---|
+| USDCAD | 16:30 (ABD verisi) | %78 | %70 |
+| CADJPY | 16:30 | %88 | %79,5 |
+| CADCHF | 16:30 | %80 | %81 |
+| AUDCAD | 16:30 | %84 | %80 |
+| USDCHF | 18:16 | %75 | %66 |
+| AUDJPY | 17:41 | %78 | %66 |
+| GBPCAD | 16:31 | %47 | %72 |
+| AUDCHF | 17:31 | %37 | %58 |
+| AUDJPY | 16:34 | %20 | %66 |
+| EURCHF | 18:18 | %30 | %78 |
+
+Büyük mum anlarında ödeme genelde düşmüyor (16:30 ABD verisinde çoğu paritede gün medyanının
+üstünde, %78–88). Düşük ödemeler (%20–47) o saatlerde zaten dalgalı paritelerde; büyük mumun
+sebep olduğu söylenemez. Gece 00–02 (gün dönümü) ödemeleri bilinmiyor; 1 Aralık gecesi demo
+denemesinde not edilecek.
