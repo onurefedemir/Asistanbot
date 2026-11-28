@@ -330,3 +330,19 @@ Hiçbiri başa başa yaklaşmadı (hepsi p = 1,0; gecikme 0'da da %47,9–50,5).
 Yani kullanıcının kazancını açıklayan şey "trend yönünde girmek" değil: mekanik trend kuralı
 kullanıcının seçtiği grafiklerde bile %47'de kalıyor. Kullanıcının gözle yaptığı seçimde
 başka bir şey olabilir; bunu ayırt etmek için ~200 cevap gerekir (o zaman %59 sürerse p ≈ 0,07).
+
+## 13. Yalnızca "emin olunan" işlemler (hedef: 100 işlemde 80 doğru)
+
+Fikir: model çok emin değilse işleme girme. `binary/confident.py`: 1–60 dk getiriler, aralık
+konumu, EMA farkı, oynaklık, mum gövdesi, saat ve paritelerle gradyan artırmalı model; yalnızca
+olasılık ≥ %74 ya da ≤ %26 iken, 1 dk gecikmeli giriş, 5 dk vade, aynı paritede örtüşme yok.
+
+- Tek bölmede (Ekim → 10–27 Kasım) en emin 100 tahmin %61–63 tuttu. Aynı yöntem farklı bölme
+  tarihleriyle: %53, %58, %46; ters yönde %60. Yani tek bölmedeki sonuç şanstı.
+- Gerçekçi sınama (her gün yalnızca önceki 30 günle yeniden eğitim, 23 gün): **376 işlem,
+  %50,3** (başa baş %54,05, p = 0,94). Güven eşiği yükseltmek isabeti artırmıyor; modelin
+  "eminim" dediği yerler de yazı-tura.
+- Örnek: "tutana kadar dene" yapılırsa Ekim'de %70+ görünen 20 kural Kasım'da %52'ye düştü.
+
+Sonuç: elimizdeki veriyle 1–15 dk yönde %80'e, hatta kârlı %54'e ulaşan bir seçicilik yok.
+Aday ileri doğrulamaya alınmadı (geçmişte zaten kaldı).
