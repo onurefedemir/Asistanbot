@@ -305,3 +305,28 @@ Kullanıcının testte 4/4 tutan "fiyat çizgiyi geçmiş ve ötesinde duruyor" 
 Hiçbiri Bonferroni eşiğini geçmedi. En iyi varyantla (trend, 2 mum teyit, 5 dk, gerçekçi giriş) 1.000 $ / 10 $ işlem simülasyonu: %50,7 isabetle hesap %85 ödemede 962 işlemde (~1,2 gün), %75 ödemede 614 işlemde (~0,8 gün) sıfırlandı.
 
 Not: Otomatik çizgiler kullanıcının çizdiği çizgilerle birebir aynı değil; kullanıcının gözle seçtiği "teyitli kırılım"lar (4/4) bu kuralın yakalayamadığı bir şey içeriyor olabilir. Bu ancak kullanıcının kendi işaretlediği daha fazla örnekle sınanabilir.
+
+## 12. Kullanıcının kazandığı işlemlerden çıkarılan trend kuralı (28 Kasım 2026)
+
+Yön Okuma Testi'nde 30 grafik: 27 işlem, 16 doğru (%59,3; %85 ödemede başa baş %54,05,
+şansla bu kadar ya da daha iyi sonuç olasılığı p = 0,37 — örnek henüz çok küçük).
+Kazançların 12/16'sında karar son 20 dakikanın yönüyle aynıydı, kayıplarda 5/11:
+trend yönünde açılan işlemler 12/17, trende karşı açılanlar 4/10.
+
+Bu gözlemden üç kural sonuçlara bakılmadan sabitlendi (`binary/user_trend.py`):
+T1 trend yönünde (20 dk getirisi ≥ 3 × ortalama 1 dk hareket ve EMA10/EMA30 aynı yönde),
+T2 = T1 + son 5 dk geri çekilme, T3 = T1 + fiyat 30 dk aralığının trend tarafında.
+
+Sonuç (10 parite, 377.889 dakika, %85 ödeme, 12 test):
+
+| Kural | Gecikme 1, vade 5 dk | Gecikme 1, vade 15 dk |
+|---|---|---|
+| T1 trend yönünde | 39.170 işlem, %49,98 | 17.915 işlem, %49,85 |
+| T2 + geri çekilme | 16.908 işlem, %49,08 | 11.178 işlem, %49,31 |
+| T3 + aralığın trend tarafı | 37.992 işlem, %49,98 | 17.666 işlem, %49,96 |
+
+Hiçbiri başa başa yaklaşmadı (hepsi p = 1,0; gecikme 0'da da %47,9–50,5). Aynı kural testteki
+250 grafikte 147 işlemde %44,9; kullanıcının cevapladığı grafiklerde 17 işlemde 8 doğru.
+Yani kullanıcının kazancını açıklayan şey "trend yönünde girmek" değil: mekanik trend kuralı
+kullanıcının seçtiği grafiklerde bile %47'de kalıyor. Kullanıcının gözle yaptığı seçimde
+başka bir şey olabilir; bunu ayırt etmek için ~200 cevap gerekir (o zaman %59 sürerse p ≈ 0,07).
