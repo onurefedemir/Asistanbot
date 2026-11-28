@@ -346,3 +346,22 @@ olasılık ≥ %74 ya da ≤ %26 iken, 1 dk gecikmeli giriş, 5 dk vade, aynı p
 
 Sonuç: elimizdeki veriyle 1–15 dk yönde %80'e, hatta kârlı %54'e ulaşan bir seçicilik yok.
 Aday ileri doğrulamaya alınmadı (geçmişte zaten kaldı).
+
+## 14. RSI + MACD kayıplarına kullanıcının düzeltmeleri
+
+Temel kural (RSI 30/70 + MACD kesişimi, 1 mum sonra giriş, 5 dk): Ekim–20 Kasım 2.273 işlem %50,5;
+ayrılmış hafta (21–27 Kasım) 408 işlem %53,4. Rastgele 8 kayıp grafiği kullanıcıya gösterildi;
+kullanıcının yorumları kurala çevrildi, sonuca bakmadan sabitlendi (`binary/rsi_macd.py`):
+
+| Düzeltme | Ekim–20 Kasım | Ayrılmış hafta |
+|---|---|---|
+| Kesişim mumunda gir (gecikme 0) | 2.282 işlem, %48,9 | 410 işlem, %53,9 |
+| F2a doji + RSI trend tarafında → girme | 1.637, %50,8 | 288, %53,5 |
+| F2b aynı durumda ters yöne gir | 2.273, %50,9 | 408, %51,7 |
+| F3a mum kırılımı şart | 688, %48,8 | 104, %58,7 |
+| F3b ters trendde kırılım şart | 753, %49,5 | 120, %55,8 |
+| F3c F3b + MACD düzeltmesi ufak değil | 133, %54,1 | 25, %56,0 |
+
+Hiçbiri iki dönemde birden başa başı anlamlı şekilde geçmedi. F3a ayrılmış haftada %58,7 ama
+eğitim döneminde %48,8 (tutarsız); F3c başa başta ama işlem sayısı az. F2a, F3a, F3c 28 Kasım
+sonrası yeni veride izleniyor: `python -m binary.rsi_macd --since 2026-11-29`.
