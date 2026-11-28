@@ -365,3 +365,37 @@ kullanıcının yorumları kurala çevrildi, sonuca bakmadan sabitlendi (`binary
 Hiçbiri iki dönemde birden başa başı anlamlı şekilde geçmedi. F3a ayrılmış haftada %58,7 ama
 eğitim döneminde %48,8 (tutarsız); F3c başa başta ama işlem sayısı az. F2a, F3a, F3c 28 Kasım
 sonrası yeni veride izleniyor: `python -m binary.rsi_macd --since 2026-11-29`.
+
+## 15. Kullanıcının grafik okumasının kurala dökülmesi (kâr/zarar değil, okuma)
+
+Amaç: kullanıcının MACD kesişimlerinde nereye ve hangi yönde girdiğini kurala çevirmek.
+Araç: RSI MACD Çizim Masası (fiyat, RSI, MACD panelleri; çizim, karar ve giriş mumu seçimi).
+
+- **1. set (20 grafik, sonuç görünür):** kullanıcı 17 grafikte girdi, 3'ünde girmedi; girişlerin
+  9'u MACD yönünde, 8'i MACD'nin tersine. Notlardaki ana ölçüt RSI'nin 50 çizgisi.
+  Eski kural (doji/kırılım/onay mumu) 20 kararın yalnızca 4'üyle aynıydı.
+- **Kural v2** (RSI 45–55'te bir mum bekle, 50'den sekerse MACD'nin tersine): 1. sette 14/20 uyum
+  (aynı veride kurulduğu için iyimser). Kararları önceden mühürlendi; **2. sette (sonuç gizli)
+  uyum 7/20** — genellenmedi.
+- 2. set notlarından: "RSI 50'yi geçtiyse MACD yönünde", "geçemediyse tersine", emin değilse bir
+  mum bekleme; kullanıcı ayrıca destek çizgisine değip alt fitil bırakan mumda CALL giriyor.
+  Girişlerin 15/17'si CALL (yön eğilimi). Kullanıcı RSI 50'yi kesin değil "sınır bölgesi" olarak görüyor.
+- **Kural v3** (`binary/user_reading.py`): destek/dirençten fitilli dönüş + RSI 45–55 sınır bölgesi.
+
+Kural v3, sinyal mumunun kapanışında giriş, doğru yön oranı (Ekim–27 Kasım, 7 parite, 1.989 sinyal):
+
+| Girişten sonra | 20 rastgele yeni grafik | Tüm veri |
+|---|---|---|
+| 1 mum | 10/20 | %48,1 |
+| 3 mum | 10/20 | %50,0 |
+| 5 mum | 11/20 | %49,0 |
+
+Parçalar (3 mum): RSI 50 sınırında geçemedi → ters %52,0 (325); RSI 50'den uzak → %49,9 (1.289);
+RSI 50'yi geçti → %50,0 (154); dirençten üst fitil → %49,5 (93); destekten alt fitil → %42,4 (66).
+Hiçbiri yazı-turadan anlamlı şekilde ayrılmıyor. Kullanıcı da bu okumanın "taktik değil yazı tura"
+olduğunu kabul etti. Kâr/zarar hesabı bu bölümde bilerek yapılmadı.
+
+**Veri notu:** Yahoo, EURUSD, GBPUSD ve AUDUSD için yalnızca dakika kapanışını veriyor
+(O=H=L=C; EURUSD'de kapanışların yarısı değişmiyor). Mum şekline bakan testlerde (fitil, doji,
+kırılım, grafik okuma) bu üç parite dışarıda bırakıldı; kapanışa dayalı eski testlerde bu
+paritelerin verisinin kaba olduğu akılda tutulmalı.
