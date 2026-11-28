@@ -3,7 +3,7 @@
 Tanım: kapanıştan kapanışa 1 dk hareketi, o paritenin son 24 saatteki tipik (medyan) 1 dk
 hareketinin en az `K` katı. Ardışık olmayan dakikalar (veri boşluğu) sayılmaz.
 Her sıçrama için: parite, zaman (UTC ve TSİ), büyüklük (pip ve kat), yön, sonraki 5 dk'da
-geri dönüp dönmediği. EURUSD/GBPUSD/AUDUSD verisi yalnızca kapanış olduğu için ayrıca işaretlenir.
+geri dönüp dönmediği, tek dakikalık veri hatası olabilir mi. EURUSD/GBPUSD/AUDUSD verisi yalnızca kapanış olduğu için ayrıca işaretlenir.
 
 Kullanım:
     python -m binary.spikes --candles candles --out spikes.csv   # kaydı günceller (eskileri korur)
@@ -39,10 +39,12 @@ def find(frames: dict[str, pd.DataFrame], k: float = K) -> pd.DataFrame:
             t = df.index[i]
             after = cc[i + 5] - cc[i] if i + 5 < len(cc) and (df.index[i + 5] - t).total_seconds() == 300 else np.nan
             mv = cc[i] - cc[i - 1]
+            # tek dakikalık hatalı fiyat: bir sonraki dakika neredeyse tamamen eski yerine dönüyor
+            glitch = i + 1 < len(cc) and abs(cc[i + 1] - cc[i - 1]) <= 0.2 * abs(mv)
             rows.append({"pair": p, "ts_utc": t.strftime("%Y-%m-%d %H:%M"), "tsi": (t + pd.Timedelta(hours=3)).strftime("%Y-%m-%d %H:%M"),
                          "yon": "yukari" if mv > 0 else "asagi", "pip": round(abs(mv) / pip, 1), "kat": round(float(z.iloc[i]), 1),
                          "sonraki_5dk": "" if np.isnan(after) else ("geri_dondu" if np.sign(after) == -np.sign(mv) else "devam" if np.sign(after) == np.sign(mv) else "yatay"),
-                         "sadece_kapanis": p in CLOSE_ONLY})
+                         "sadece_kapanis": p in CLOSE_ONLY, "veri_hatasi_olasi": bool(glitch)})
     return pd.DataFrame(rows)
 
 
@@ -50,9 +52,15 @@ def report(s: pd.DataFrame) -> str:
     if s.empty:
         return "Kayıtlı sıçrama yok."
     s = s[~s.sadece_kapanis]
+    if "veri_hatasi_olasi" in s:
+        n_bad = int(s.veri_hatasi_olasi.fillna(False).astype(bool).sum())
+        s = s[~s.veri_hatasi_olasi.fillna(False).astype(bool)]
+    else:
+        n_bad = 0
     s = s.assign(gun=s.tsi.str[:10], saat=s.tsi.str[11:13].astype(int))
     days = s.gun.nunique()
-    out = [f"Çok büyük 1 dk mumlar (≥{K}× tipik hareket) — {s.gun.min()} … {s.gun.max()} (TSİ), {days} gün", ""]
+    out = [f"Çok büyük 1 dk mumlar (≥{K}× tipik hareket) — {s.gun.min()} … {s.gun.max()} (TSİ), {days} gün",
+           f"(Tek dakikalık olası veri hatası olarak ayrılan: {n_bad})", ""]
     for p, g in s.groupby("pair"):
         top = g.saat.value_counts().head(3)
         out.append(f"{p}: {len(g)} sıçrama, {g.gun.nunique()} günde; ort. {g.pip.mean():.1f} pip; "

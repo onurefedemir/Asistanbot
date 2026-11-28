@@ -412,3 +412,16 @@ EURJPY ve USDCHF neredeyse her gün sıçrama atıyor. Sıçramaların %66'sı T
 sıçramalarının %67'si 5 dk içinde geri dönüyor; haber sıçramalarında yön yazı-tura (%52 geri).
 Bu Yahoo verisi; Pocket Option'ın gece saatlerinde işlem açtırıp açtırmadığı ve aynı sıçramaları
 gösterip göstermediği henüz bilinmiyor.
+
+### 16a. Sıçramaların sebebi (haber mi?)
+
+- **Gece sıçramaları haber değil, gün dönümü:** Ekim'de en sık TSİ 00:00, 1 Kasım'dan (ABD kış
+  saati) sonra TSİ 01:00. İkisi de New York 17:00 = forex gün kapanışı (rollover): likidite çekilir,
+  alış-satış farkı açılır, fiyat kısa süre zıplayıp geri döner.
+- **Gündüz sıçramaları haber:** TSİ 16:30 = ABD verileri (ET 08:30; 6 Kasım tarım dışı istihdam,
+  USDCAD 39 pip — Kanada istihdamı da aynı dakika); TSİ 03:30 = Avustralya verileri (19 Kasım
+  istihdam, AUDCAD −44 pip "Aussie falls after soft jobs data"; 25 Kasım TÜFE, +34 pip "Aussie
+  jumps on CPI"); 3 Kasım TSİ 06:30 = RBA faiz kararı (AUDCAD −22 pip).
+- **Veri hataları:** 20 Kasım TSİ 02:59'daki USDJPY −123 pip / EURJPY −129 pip "sıçrama" haber
+  değil; tek dakikalık hatalı fiyat (bir dakika sonra eski yerinde). `binary/spikes.py` bu tür tek
+  dakikalık geri dönüşleri `veri_hatasi_olasi` olarak işaretliyor (972 kayıttan 121'i).
