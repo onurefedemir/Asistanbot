@@ -425,3 +425,27 @@ gösterip göstermediği henüz bilinmiyor.
 - **Veri hataları:** 20 Kasım TSİ 02:59'daki USDJPY −123 pip / EURJPY −129 pip "sıçrama" haber
   değil; tek dakikalık hatalı fiyat (bir dakika sonra eski yerinde). `binary/spikes.py` bu tür tek
   dakikalık geri dönüşleri `veri_hatasi_olasi` olarak işaretliyor (972 kayıttan 121'i).
+
+### 16b. Büyük mumlarda Pocket ödeme oranları
+
+Kaynak: kullanıcının 16 Kasım Pocket kaydı (TSİ 12:36–19:36, tek gün; gece verisi yok).
+Pocket ödemesi gün içinde parite ve saate göre %20–92 arasında değişiyor (medyan %75; saatlik
+medyan 12:00'de %84, 15:00'te %69).
+
+| Parite | Saat (TSİ) | O dakika ödeme | Paritenin gün medyanı |
+|---|---|---|---|
+| USDCAD | 16:30 (ABD verisi) | %78 | %70 |
+| CADJPY | 16:30 | %88 | %79,5 |
+| CADCHF | 16:30 | %80 | %81 |
+| AUDCAD | 16:30 | %84 | %80 |
+| USDCHF | 18:16 | %75 | %66 |
+| AUDJPY | 17:41 | %78 | %66 |
+| GBPCAD | 16:31 | %47 | %72 |
+| AUDCHF | 17:31 | %37 | %58 |
+| AUDJPY | 16:34 | %20 | %66 |
+| EURCHF | 18:18 | %30 | %78 |
+
+Büyük mum anlarında ödeme genelde düşmüyor (16:30 ABD verisinde çoğu paritede gün medyanının
+üstünde, %78–88). Düşük ödemeler (%20–47) o saatlerde zaten dalgalı paritelerde; büyük mumun
+sebep olduğu söylenemez. Gece 00–02 (gün dönümü) ödemeleri bilinmiyor; 1 Aralık gecesi demo
+denemesinde not edilecek.
